@@ -1,30 +1,30 @@
 import { OpenFluctLight } from './core';
-import { interrogations, relationships, memories } from './schema';
-import { Interrogation, InterrogationSource, Relationship, RelationshipTargetType, Memory, Contradiction, SeekResult, QueryResult } from './types';
+import { anchors, relationships, memories } from './schema';
+import { Anchor, AnchorSource, Relationship, RelationshipTargetType, Memory, Contradiction, SeekResult, QueryResult } from './types';
 import { eq, and } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { MemoryManager } from './managers';
 
 /**
- * 灵魂拷问管理器
+ * 灵魂锚点管理器
  */
-export class InterrogationManager {
+export class AnchorManager {
   constructor(private light: OpenFluctLight, private memoryManager: MemoryManager) {}
 
   /**
-   * 创建或更新灵魂拷问
+   * 创建或更新灵魂锚点
    */
   async ask(
     soulId: string,
     question: string,
     answer: string,
     options?: {
-      source?: InterrogationSource;
+      source?: AnchorSource;
       relatedMemoryIds?: string[];
       confidence?: number;
     }
-  ): Promise<Interrogation> {
-    const interrogation: Interrogation = {
+  ): Promise<Anchor> {
+    const anchor: Anchor = {
       id: randomUUID(),
       soulId,
       question,
@@ -35,28 +35,28 @@ export class InterrogationManager {
       relatedMemoryIds: options?.relatedMemoryIds || [],
     };
 
-    await this.light['orm'].insert(interrogations).values({
-      id: interrogation.id,
-      soulId: interrogation.soulId,
-      question: interrogation.question,
-      answer: interrogation.answer,
-      source: interrogation.source,
-      confidence: interrogation.confidence,
-      lastUpdated: interrogation.lastUpdated,
-      relatedMemoryIds: JSON.stringify(interrogation.relatedMemoryIds),
+    await this.light['orm'].insert(anchors).values({
+      id: anchor.id,
+      soulId: anchor.soulId,
+      question: anchor.question,
+      answer: anchor.answer,
+      source: anchor.source,
+      confidence: anchor.confidence,
+      lastUpdated: anchor.lastUpdated,
+      relatedMemoryIds: JSON.stringify(anchor.relatedMemoryIds),
     });
 
-    return interrogation;
+    return anchor;
   }
 
   /**
-   * 获取灵魂拷问
+   * 获取灵魂锚点
    */
-  async get(id: string): Promise<Interrogation | null> {
+  async get(id: string): Promise<Anchor | null> {
     const result = await this.light['orm']
       .select()
-      .from(interrogations)
-      .where(eq(interrogations.id, id))
+      .from(anchors)
+      .where(eq(anchors.id, id))
       .limit(1);
 
     if (result.length === 0) return null;
@@ -67,7 +67,7 @@ export class InterrogationManager {
       soulId: row.soulId,
       question: row.question,
       answer: row.answer,
-      source: row.source as InterrogationSource,
+      source: row.source as AnchorSource,
       confidence: row.confidence,
       lastUpdated: row.lastUpdated,
       relatedMemoryIds: JSON.parse(row.relatedMemoryIds as string),
@@ -75,20 +75,20 @@ export class InterrogationManager {
   }
 
   /**
-   * 列出灵魂的所有拷问
+   * 列出灵魂的所有锚点
    */
-  async list(soulId: string): Promise<Interrogation[]> {
+  async list(soulId: string): Promise<Anchor[]> {
     const results = await this.light['orm']
       .select()
-      .from(interrogations)
-      .where(eq(interrogations.soulId, soulId));
+      .from(anchors)
+      .where(eq(anchors.soulId, soulId));
 
     return results.map(row => ({
       id: row.id,
       soulId: row.soulId,
       question: row.question,
       answer: row.answer,
-      source: row.source as InterrogationSource,
+      source: row.source as AnchorSource,
       confidence: row.confidence,
       lastUpdated: row.lastUpdated,
       relatedMemoryIds: JSON.parse(row.relatedMemoryIds as string),
@@ -96,20 +96,20 @@ export class InterrogationManager {
   }
 
   /**
-   * 更新拷问答案
+   * 更新锚点答案
    */
-  async update(id: string, answer: string, confidence?: number): Promise<Interrogation> {
+  async update(id: string, answer: string, confidence?: number): Promise<Anchor> {
     await this.light['orm']
-      .update(interrogations)
+      .update(anchors)
       .set({
         answer,
         confidence: confidence ?? 1.0,
         lastUpdated: new Date(),
       })
-      .where(eq(interrogations.id, id));
+      .where(eq(anchors.id, id));
 
     const updated = await this.get(id);
-    if (!updated) throw new Error('Interrogation not found after update');
+    if (!updated) throw new Error('Anchor not found after update');
     return updated;
   }
 
@@ -139,7 +139,7 @@ ${batch.map((m, idx) => `${idx + 1}. [${m.timestamp.toISOString()}] ${m.content}
 - index1: 第一条记忆的序号
 - index2: 第二条记忆的序号
 - reason: 矛盾的原因
-- suggestedQuestion: 建议的灵魂拷问问题
+- suggestedQuestion: 建议的灵魂锚点问题
 
 如果没有发现矛盾，返回空数组 []。`;
 

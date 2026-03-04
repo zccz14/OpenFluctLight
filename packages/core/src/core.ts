@@ -7,7 +7,7 @@ import OpenAI from 'openai';
 import path from 'path';
 import fs from 'fs';
 import { SoulManager, MemoryManager } from './managers';
-import { InterrogationManager, RelationshipManager } from './operations';
+import { AnchorManager, RelationshipManager } from './operations';
 import { QuestionSeek, QueryInference } from './core-operations';
 
 export interface OpenFluctLightConfig {
@@ -30,7 +30,7 @@ export class OpenFluctLight {
   // 管理器
   public souls: SoulManager;
   public memories: MemoryManager;
-  public interrogations: InterrogationManager;
+  public anchors: AnchorManager;
   public relationships: RelationshipManager;
   
   // 核心操作
@@ -68,12 +68,12 @@ export class OpenFluctLight {
     // 初始化管理器
     this.souls = new SoulManager(this);
     this.memories = new MemoryManager(this);
-    this.interrogations = new InterrogationManager(this, this.memories);
+    this.anchors = new AnchorManager(this, this.memories);
     this.relationships = new RelationshipManager(this);
     
     // 初始化核心操作
-    this.questionSeek = new QuestionSeek(this, this.memories, this.interrogations, this.relationships);
-    this.queryInference = new QueryInference(this, this.memories, this.interrogations, this.relationships);
+    this.questionSeek = new QuestionSeek(this, this.memories, this.anchors, this.relationships);
+    this.queryInference = new QueryInference(this, this.memories, this.anchors, this.relationships);
   }
 
   /**
@@ -99,7 +99,7 @@ export class OpenFluctLight {
         FOREIGN KEY (soul_id) REFERENCES souls(id) ON DELETE CASCADE
       );
 
-      CREATE TABLE IF NOT EXISTS interrogations (
+      CREATE TABLE IF NOT EXISTS anchors (
         id TEXT PRIMARY KEY,
         soul_id TEXT NOT NULL,
         question TEXT NOT NULL,
@@ -123,7 +123,7 @@ export class OpenFluctLight {
 
       CREATE INDEX IF NOT EXISTS idx_memories_soul_id ON memories(soul_id);
       CREATE INDEX IF NOT EXISTS idx_memories_timestamp ON memories(timestamp);
-      CREATE INDEX IF NOT EXISTS idx_interrogations_soul_id ON interrogations(soul_id);
+      CREATE INDEX IF NOT EXISTS idx_anchors_soul_id ON anchors(soul_id);
       CREATE INDEX IF NOT EXISTS idx_relationships_soul_id ON relationships(soul_id);
       CREATE INDEX IF NOT EXISTS idx_relationships_target ON relationships(soul_id, target_id);
     `);

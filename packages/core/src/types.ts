@@ -26,19 +26,19 @@ export interface Memory {
 }
 
 /**
- * 灵魂拷问来源
+ * 灵魂锚点来源
  */
-export type InterrogationSource = 'predefined' | 'auto_discovered';
+export type AnchorSource = 'predefined' | 'auto_discovered';
 
 /**
- * 灵魂拷问
+ * 灵魂锚点
  */
-export interface Interrogation {
+export interface Anchor {
   id: string;
   soulId: string;
   question: string;
   answer: string | null;
-  source: InterrogationSource;
+  source: AnchorSource;
   confidence: number;
   lastUpdated: Date;
   relatedMemoryIds: string[];
@@ -76,14 +76,14 @@ export interface Contradiction {
  */
 export interface QueryResult {
   memories: Memory[];
-  interrogations: Array<{
+  anchors: Array<{
     question: string;
     answer: string | null;
     confidence: number;
   }>;
   relationship?: {
     relatedMemories: Memory[];
-    interrogations: Array<{
+    anchors: Array<{
       question: string;
       answer: string | null;
       confidence: number;
@@ -96,6 +96,6 @@ export interface QueryResult {
  */
 export interface SeekResult {
   contradictions: Contradiction[];
-  newInterrogations: Interrogation[];
-  updatedInterrogations: Interrogation[];
+  newAnchors: Anchor[];
+  updatedAnchors: Anchor[];
 }

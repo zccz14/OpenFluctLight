@@ -1,5 +1,5 @@
 import { OpenFluctLight } from './core';
-import { souls, memories, interrogations, relationships } from './schema';
+import { souls, memories, anchors, relationships } from './schema';
 import { Soul, Memory, MemoryType } from './types';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';

@@ -24,7 +24,7 @@ async function main() {
   console.log('\n执行记忆求索...');
   const seekResult = await light.questionSeek.seek(soul.id);
   console.log('发现矛盾:', seekResult.contradictions.length);
-  console.log('新增拷问:', seekResult.newInterrogations.length);
+  console.log('新增锚点:', seekResult.newAnchors.length);
 
   // 提问推理
   console.log('\n执行提问推理...');
@@ -33,7 +33,7 @@ async function main() {
     '我应该如何平衡独立工作和团队协作？'
   );
   console.log('召回记忆:', queryResult.memories.length);
-  console.log('相关拷问:', queryResult.interrogations.length);
+  console.log('相关锚点:', queryResult.anchors.length);
 
   await light.close();
 }

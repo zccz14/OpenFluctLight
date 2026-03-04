@@ -23,9 +23,9 @@ export const memories = sqliteTable('memories', {
 });
 
 /**
- * 灵魂拷问表
+ * 灵魂锚点表
  */
-export const interrogations = sqliteTable('interrogations', {
+export const anchors = sqliteTable('anchors', {
   id: text('id').primaryKey(),
   soulId: text('soul_id').notNull().references(() => souls.id, { onDelete: 'cascade' }),
   question: text('question').notNull(),

@@ -1,6 +1,6 @@
 import { OpenFluctLight } from './core';
 import { MemoryManager } from './managers';
-import { InterrogationManager, RelationshipManager } from './operations';
+import { AnchorManager, RelationshipManager } from './operations';
 import { SeekResult, QueryResult, Memory } from './types';
 
 /**
@@ -10,7 +10,7 @@ export class QuestionSeek {
   constructor(
     private light: OpenFluctLight,
     private memoryManager: MemoryManager,
-    private interrogationManager: InterrogationManager,
+    private anchorManager: AnchorManager,
     private relationshipManager: RelationshipManager
   ) {}
 
@@ -19,10 +19,10 @@ export class QuestionSeek {
    */
   async seek(soulId: string): Promise<SeekResult> {
     // 1. 检测矛盾
-    const contradictions = await this.interrogationManager.detectContradictions(soulId);
+    const contradictions = await this.anchorManager.detectContradictions(soulId);
 
-    const newInterrogations = [];
-    const updatedInterrogations = [];
+    const newAnchors = [];
+    const updatedAnchors = [];
 
     // 2. 处理每个矛盾
     for (const contradiction of contradictions) {
@@ -36,20 +36,20 @@ export class QuestionSeek {
       );
 
       // 检查是否已存在相同问题
-      const existingInterrogations = await this.interrogationManager.list(soulId);
-      const existing = existingInterrogations.find(i => i.question === suggestedQuestion);
+      const existingAnchors = await this.anchorManager.list(soulId);
+      const existing = existingAnchors.find(i => i.question === suggestedQuestion);
 
       if (existing) {
-        // 更新已有拷问
-        const updated = await this.interrogationManager.update(
+        // 更新已有锚点
+        const updated = await this.anchorManager.update(
           existing.id,
           dialecticAnswer,
           0.8
         );
-        updatedInterrogations.push(updated);
+        updatedAnchors.push(updated);
       } else {
-        // 创建新拷问
-        const newInterrogation = await this.interrogationManager.ask(
+        // 创建新锚点
+        const newAnchor = await this.anchorManager.ask(
           soulId,
           suggestedQuestion,
           dialecticAnswer,
@@ -59,17 +59,17 @@ export class QuestionSeek {
             confidence: 0.8,
           }
         );
-        newInterrogations.push(newInterrogation);
+        newAnchors.push(newAnchor);
       }
     }
 
     // 3. 更新关系认知
-    await this.updateRelationshipInterrogations(soulId);
+    await this.updateRelationshipAnchors(soulId);
 
     return {
       contradictions,
-      newInterrogations,
-      updatedInterrogations,
+      newAnchors,
+      updatedAnchors,
     };
   }
 
@@ -104,9 +104,9 @@ export class QuestionSeek {
   }
 
   /**
-   * 更新关系相关的灵魂拷问
+   * 更新关系相关的灵魂锚点
    */
-  private async updateRelationshipInterrogations(soulId: string): Promise<void> {
+  private async updateRelationshipAnchors(soulId: string): Promise<void> {
     // 获取所有关系
     const relationships = await this.relationshipManager.list(soulId);
 
@@ -120,7 +120,7 @@ export class QuestionSeek {
 
       if (relationshipMemories.length === 0) continue;
 
-      // 生成关系相关的拷问
+      // 生成关系相关的锚点
       const questions = [
         `我如何看待 ${rel.targetId}？`,
         `我愿意向 ${rel.targetId} 寻求帮助吗？`,
@@ -135,13 +135,13 @@ export class QuestionSeek {
         );
 
         // 检查是否已存在
-        const existingInterrogations = await this.interrogationManager.list(soulId);
-        const existing = existingInterrogations.find(i => i.question === question);
+        const existingAnchors = await this.anchorManager.list(soulId);
+        const existing = existingAnchors.find(i => i.question === question);
 
         if (existing) {
-          await this.interrogationManager.update(existing.id, answer, 0.7);
+          await this.anchorManager.update(existing.id, answer, 0.7);
         } else {
-          await this.interrogationManager.ask(
+          await this.anchorManager.ask(
             soulId,
             question,
             answer,
@@ -188,7 +188,7 @@ export class QueryInference {
   constructor(
     private light: OpenFluctLight,
     private memoryManager: MemoryManager,
-    private interrogationManager: InterrogationManager,
+    private anchorManager: AnchorManager,
     private relationshipManager: RelationshipManager
   ) {}
 
@@ -210,11 +210,11 @@ export class QueryInference {
       limit: memoryLimit,
     });
 
-    // 2. 召回相关灵魂拷问
-    const allInterrogations = await this.interrogationManager.list(soulId);
-    const relevantInterrogations = await this.findRelevantInterrogations(
+    // 2. 召回相关灵魂锚点
+    const allAnchors = await this.anchorManager.list(soulId);
+    const relevantAnchors = await this.findRelevantAnchors(
       prompt,
-      allInterrogations
+      allAnchors
     );
 
     // 3. 如果指定了身份，召回关系信息
@@ -230,14 +230,14 @@ export class QueryInference {
                m.metadata?.targetId === contextId
         );
 
-        // 获取关系相关的拷问
-        const relationshipInterrogations = allInterrogations.filter(
+        // 获取关系相关的锚点
+        const relationshipAnchors = allAnchors.filter(
           i => i.question.includes(contextId)
         );
 
         relationship = {
           relatedMemories,
-          interrogations: relationshipInterrogations.map(i => ({
+          anchors: relationshipAnchors.map(i => ({
             question: i.question,
             answer: i.answer,
             confidence: i.confidence,
@@ -248,7 +248,7 @@ export class QueryInference {
 
     return {
       memories,
-      interrogations: relevantInterrogations.map(i => ({
+      anchors: relevantAnchors.map(i => ({
         question: i.question,
         answer: i.answer,
         confidence: i.confidence,
@@ -258,31 +258,31 @@ export class QueryInference {
   }
 
   /**
-   * 找到与提问相关的灵魂拷问
+   * 找到与提问相关的灵魂锚点
    */
-  private async findRelevantInterrogations(
+  private async findRelevantAnchors(
     prompt: string,
-    interrogations: any[]
+    anchors: any[]
   ): Promise<any[]> {
-    if (interrogations.length === 0) return [];
+    if (anchors.length === 0) return [];
 
-    // 使用语义相似度找到相关拷问
+    // 使用语义相似度找到相关锚点
     const promptEmbedding = await this.light.embed(prompt);
     
     const withSimilarity = await Promise.all(
-      interrogations.map(async (i) => {
+      anchors.map(async (i) => {
         const questionEmbedding = await this.light.embed(i.question);
         const similarity = this.cosineSimilarity(promptEmbedding, questionEmbedding);
-        return { interrogation: i, similarity };
+        return { anchor: i, similarity };
       })
     );
 
-    // 返回相似度 > 0.6 的拷问，最多 10 个
+    // 返回相似度 > 0.6 的锚点，最多 10 个
     return withSimilarity
       .filter(item => item.similarity > 0.6)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 10)
-      .map(item => item.interrogation);
+      .map(item => item.anchor);
   }
 
   /**
