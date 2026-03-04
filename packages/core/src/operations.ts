@@ -70,7 +70,7 @@ export class AnchorManager {
       source: row.source as AnchorSource,
       confidence: row.confidence,
       lastUpdated: row.lastUpdated,
-      relatedMemoryIds: JSON.parse(row.relatedMemoryIds as string),
+      relatedMemoryIds: JSON.parse(row.relatedMemoryIds as string) as string[],
     };
   }
 
@@ -91,7 +91,7 @@ export class AnchorManager {
       source: row.source as AnchorSource,
       confidence: row.confidence,
       lastUpdated: row.lastUpdated,
-      relatedMemoryIds: JSON.parse(row.relatedMemoryIds as string),
+      relatedMemoryIds: JSON.parse(row.relatedMemoryIds as string) as string[],
     }));
   }
 
@@ -193,7 +193,12 @@ ${batch.map((m, idx) => `${idx + 1}. [${m.timestamp.toISOString()}] ${m.content}
       ], { temperature: 0.3 });
 
       try {
-        const detected = JSON.parse(response);
+        const detected = JSON.parse(response) as Array<{
+          index1: number;
+          index2: number;
+          reason: string;
+          suggestedQuestion: string;
+        }>;
         for (const item of detected) {
           const mem1 = batch[item.index1 - 1];
           const mem2 = batch[item.index2 - 1];
@@ -230,7 +235,7 @@ export class RelationshipManager {
     targetId: string,
     options?: {
       targetType?: RelationshipTargetType;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     }
   ): Promise<Relationship> {
     const relationship: Relationship = {
@@ -273,7 +278,7 @@ export class RelationshipManager {
       targetId: row.targetId,
       targetType: row.targetType as RelationshipTargetType,
       lastInteraction: row.lastInteraction,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
     };
   }
 
@@ -292,7 +297,7 @@ export class RelationshipManager {
       targetId: row.targetId,
       targetType: row.targetType as RelationshipTargetType,
       lastInteraction: row.lastInteraction,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
     }));
   }
 

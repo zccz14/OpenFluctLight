@@ -1,7 +1,7 @@
 import { OpenFluctLight } from './core.js';
 import { MemoryManager } from './managers.js';
 import { AnchorManager, RelationshipManager } from './operations.js';
-import { SeekResult, RecallResult, Memory } from './types.js';
+import { SeekResult, RecallResult, Memory, Anchor, RecalledAnchor } from './types.js';
 
 /**
  * 求索操作
@@ -237,7 +237,8 @@ export class Recall {
 
         relationship = {
           relatedMemories,
-          anchors: relationshipAnchors.map(i => ({
+          anchors: relationshipAnchors.map((i): RecalledAnchor => ({
+            id: i.id,
             question: i.question,
             answer: i.answer,
             confidence: i.confidence,
@@ -248,7 +249,8 @@ export class Recall {
 
     return {
       memories,
-      anchors: relevantAnchors.map(i => ({
+      anchors: relevantAnchors.map((i): RecalledAnchor => ({
+        id: i.id,
         question: i.question,
         answer: i.answer,
         confidence: i.confidence,
@@ -262,8 +264,8 @@ export class Recall {
    */
   private async findRelevantAnchors(
     prompt: string,
-    anchors: any[]
-  ): Promise<any[]> {
+    anchors: Anchor[]
+  ): Promise<Anchor[]> {
     if (anchors.length === 0) return [];
 
     // 使用语义相似度找到相关锚点

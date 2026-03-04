@@ -7,6 +7,21 @@ import * as path from 'path';
 import * as os from 'os';
 import { displayWelcome, displayRecalled, displayAnchorUpdates, displaySeparator } from '../utils/display.js';
 
+interface Config {
+  dataPath: string;
+  llmApiKey?: string;
+  llmBaseURL?: string;
+  llmModel?: string;
+  useLocalEmbedding?: boolean;
+  embeddingApiKey?: string;
+  embeddingBaseURL?: string;
+  embeddingModel?: string;
+}
+
+interface UserInputAnswer {
+  userInput: string;
+}
+
 export class ChatCommand extends Command {
   static paths = [['chat']];
 
@@ -27,6 +42,11 @@ export class ChatCommand extends Command {
     required: false,
   });
 
+  verbose = Option.Boolean('-v,--verbose', {
+    description: '显示详细日志（包括召回记忆、Prompt、LLM 响应等）',
+    required: false,
+  });
+
   async execute() {
     const configPath = path.join(os.homedir(), '.openfluctlight', 'config.json');
     
@@ -37,7 +57,7 @@ export class ChatCommand extends Command {
       return 1;
     }
 
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as Config;
     const dataPath = path.join(config.dataPath, this.soul!);
 
     // 初始化 OpenFluctLight
@@ -70,7 +90,7 @@ export class ChatCommand extends Command {
 
     // 交互式对话循环
     while (true) {
-      const { userInput } = await inquirer.prompt([
+      const { userInput } = await inquirer.prompt<UserInputAnswer>([
         {
           type: 'input',
           name: 'userInput',
@@ -92,6 +112,7 @@ export class ChatCommand extends Command {
         // 调用 Chat
         const result = await light.chat.chat(soul.id, userInput, {
           userName,
+          verbose: this.verbose,
         });
 
         // 显示召回的记忆和锚点
@@ -106,9 +127,11 @@ export class ChatCommand extends Command {
         }
 
         displaySeparator();
-      } catch (error: any) {
-        console.error(chalk.red(`\n错误: ${error.message}`));
-        console.error(chalk.gray(error.stack));
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : '';
+        console.error(chalk.red(`\n错误: ${errorMessage}`));
+        console.error(chalk.gray(errorStack));
         displaySeparator();
       }
     }

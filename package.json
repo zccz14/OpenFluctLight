@@ -1,10 +1,13 @@
 {
   "name": "OpenFluctLight",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint packages/*/src/**/*.ts",
+    "lint:fix": "eslint packages/*/src/**/*.ts --fix"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +15,9 @@
   "packageManager": "pnpm@10.15.0",
   "devDependencies": {
     "@types/node": "^25.3.3",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "eslint": "^10.0.2",
     "typescript": "^5.9.3"
   }
 }

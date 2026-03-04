@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import type { Memory, Anchor } from '@openfluctlight/core';
 
 export function displayWelcome(soulName: string, dataPath: string) {
   console.log(chalk.cyan('╭─────────────────────────────────────────╮'));
@@ -8,12 +9,18 @@ export function displayWelcome(soulName: string, dataPath: string) {
   console.log();
 }
 
-export function displayRecalled(memories: any[], anchors: any[]) {
+interface RecalledAnchor {
+  question: string;
+  answer: string | null;
+  confidence: number;
+}
+
+export function displayRecalled(memories: Memory[], anchors: RecalledAnchor[]) {
   if (memories.length > 0) {
     console.log(chalk.yellow(`\n[召回记忆 ${memories.length} 条]`));
     memories.slice(0, 3).forEach(m => {
-      const date = new Date(m.timestamp).toISOString().split('T')[0];
-      console.log(chalk.gray(`• ${m.content.substring(0, 60)}... (${date})`));
+      const timestamp = new Date(m.timestamp).toISOString();
+      console.log(chalk.gray(`• ${m.content.substring(0, 60)}... (${timestamp})`));
     });
   }
 
@@ -30,7 +37,7 @@ export function displayRecalled(memories: any[], anchors: any[]) {
   }
 }
 
-export function displayAnchorUpdates(anchors: any[]) {
+export function displayAnchorUpdates(anchors: Anchor[]) {
   if (anchors.length > 0) {
     console.log(chalk.green(`\n[锚点更新]`));
     anchors.forEach(a => {

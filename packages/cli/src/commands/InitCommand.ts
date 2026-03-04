@@ -5,6 +5,28 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
+interface InitAnswers {
+  dataPath: string;
+  embeddingType: 'local' | 'openai';
+  embeddingApiKey?: string;
+  embeddingBaseURL?: string;
+  embeddingModel?: string;
+  llmApiKey: string;
+  llmBaseURL: string;
+  llmModel: string;
+}
+
+interface ConfigFile {
+  dataPath: string;
+  useLocalEmbedding: boolean;
+  llmApiKey: string;
+  llmBaseURL: string;
+  llmModel: string;
+  embeddingApiKey?: string;
+  embeddingBaseURL?: string;
+  embeddingModel?: string;
+}
+
 export class InitCommand extends Command {
   static paths = [['init']];
 
@@ -15,7 +37,7 @@ export class InitCommand extends Command {
   async execute() {
     console.log(chalk.cyan('欢迎使用 OpenFluctLight CLI！\n'));
 
-    const answers = await inquirer.prompt([
+    const answers = await inquirer.prompt<InitAnswers>([
       {
         type: 'input',
         name: 'dataPath',
@@ -37,21 +59,21 @@ export class InitCommand extends Command {
         name: 'embeddingApiKey',
         message: 'Embedding API Key:',
         default: process.env.OPENAI_API_KEY || '',
-        when: (answers: any) => answers.embeddingType === 'openai',
+        when: (answers: Partial<InitAnswers>) => answers.embeddingType === 'openai',
       },
       {
         type: 'input',
         name: 'embeddingBaseURL',
         message: 'Embedding Base URL:',
         default: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
-        when: (answers: any) => answers.embeddingType === 'openai',
+        when: (answers: Partial<InitAnswers>) => answers.embeddingType === 'openai',
       },
       {
         type: 'input',
         name: 'embeddingModel',
         message: 'Embedding 模型:',
         default: 'text-embedding-3-small',
-        when: (answers: any) => answers.embeddingType === 'openai',
+        when: (answers: Partial<InitAnswers>) => answers.embeddingType === 'openai',
       },
       {
         type: 'input',
@@ -87,7 +109,7 @@ export class InitCommand extends Command {
     }
 
     // 构建配置对象
-    const config: any = {
+    const config: ConfigFile = {
       dataPath: answers.dataPath,
       useLocalEmbedding: answers.embeddingType === 'local',
       llmApiKey: answers.llmApiKey,

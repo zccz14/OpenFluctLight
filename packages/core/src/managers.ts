@@ -1,7 +1,7 @@
 import { OpenFluctLight } from './core.js';
 import { souls, memories, anchors, relationships } from './schema.js';
 import { Soul, Memory, MemoryType } from './types.js';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { PREDEFINED_ANCHORS } from './predefined-anchors.js';
 
@@ -14,7 +14,7 @@ export class SoulManager {
   /**
    * 创建灵魂
    */
-  async create(name: string, metadata?: Record<string, any>): Promise<Soul> {
+  async create(name: string, metadata?: Record<string, unknown>): Promise<Soul> {
     const soul: Soul = {
       id: randomUUID(),
       name,
@@ -63,7 +63,7 @@ export class SoulManager {
       id: row.id,
       name: row.name,
       createdAt: row.createdAt,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
     };
   }
 
@@ -77,7 +77,7 @@ export class SoulManager {
       id: row.id,
       name: row.name,
       createdAt: row.createdAt,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
     }));
   }
 
@@ -104,7 +104,7 @@ export class MemoryManager {
     options?: {
       type?: MemoryType;
       timestamp?: Date;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     }
   ): Promise<Memory> {
     const memory: Memory = {
@@ -160,7 +160,7 @@ export class MemoryManager {
       content: row.content,
       type: row.type as MemoryType,
       timestamp: row.timestamp,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
     };
   }
 
@@ -202,21 +202,31 @@ export class MemoryManager {
   async list(soulId: string, options?: {
     limit?: number;
     offset?: number;
+    orderBy?: 'asc' | 'desc';
   }): Promise<Memory[]> {
-    const query = this.light['orm']
+    const orderByOption = options?.orderBy || 'asc';
+    
+    // 构建基础查询
+    const baseQuery = this.light['orm']
       .select()
       .from(memories)
-      .where(eq(memories.soulId, soulId))
-      .orderBy(memories.timestamp);
+      .where(eq(memories.soulId, soulId));
 
-    if (options?.limit) {
-      query.limit(options.limit);
+    // 根据排序选项构建查询
+    const orderedQuery = orderByOption === 'desc' 
+      ? baseQuery.orderBy(desc(memories.timestamp))
+      : baseQuery.orderBy(memories.timestamp);
+
+    // 应用 limit 和 offset
+    let finalQuery = orderedQuery;
+    if (options?.limit !== undefined) {
+      finalQuery = finalQuery.limit(options.limit) as typeof orderedQuery;
     }
-    if (options?.offset) {
-      query.offset(options.offset);
+    if (options?.offset !== undefined) {
+      finalQuery = finalQuery.offset(options.offset) as typeof orderedQuery;
     }
 
-    const results = await query;
+    const results = await finalQuery;
 
     return results.map(row => ({
       id: row.id,
@@ -224,7 +234,7 @@ export class MemoryManager {
       content: row.content,
       type: row.type as MemoryType,
       timestamp: row.timestamp,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
     }));
   }
 

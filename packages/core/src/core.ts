@@ -217,6 +217,7 @@ export class OpenFluctLight {
     
     const response = await this.openai.chat.completions.create({
       model: options?.model || this.config.llmModel,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
       messages: messages as any,
       temperature: options?.temperature ?? 0.7,
     });

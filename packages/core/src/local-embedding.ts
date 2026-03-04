@@ -4,8 +4,8 @@
  */
 export class LocalEmbedding {
   private static instance: LocalEmbedding;
-  private model: any = null;
-  private context: any = null;
+  private model: unknown = null;
+  private context: unknown = null;
   private initPromise: Promise<void> | null = null;
   private initError: Error | null = null;
 
@@ -49,11 +49,13 @@ export class LocalEmbedding {
         const llama = await getLlama();
         this.model = await llama.loadModel({ modelPath });
         
-        this.context = await this.model.createEmbeddingContext();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        this.context = await (this.model as any).createEmbeddingContext();
         console.log('本地 Embedding 模型加载完成');
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         this.initError = new Error(
-          `本地 Embedding 模型加载失败: ${error.message}\n` +
+          `本地 Embedding 模型加载失败: ${errorMessage}\n` +
           '请使用 OpenAI Embedding 服务，或检查 node-llama-cpp 依赖是否正确安装。'
         );
         throw this.initError;
@@ -73,8 +75,10 @@ export class LocalEmbedding {
       throw new Error('Embedding context not initialized');
     }
 
-    const embedding = await this.context.getEmbeddingFor(text);
-    return Array.from(embedding.vector);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const embedding = await (this.context as any).getEmbeddingFor(text);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return Array.from((embedding as any).vector as number[]);
   }
 
   /**

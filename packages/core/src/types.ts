@@ -5,7 +5,7 @@ export interface Soul {
   id: string;
   name: string;
   createdAt: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -22,7 +22,7 @@ export interface Memory {
   content: string;
   type: MemoryType;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -58,7 +58,7 @@ export interface Relationship {
   targetId: string;
   targetType: RelationshipTargetType;
   lastInteraction: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -72,22 +72,24 @@ export interface Contradiction {
 }
 
 /**
+ * 召回的锚点信息
+ */
+export interface RecalledAnchor {
+  id: string;
+  question: string;
+  answer: string | null;
+  confidence: number;
+}
+
+/**
  * 回想结果
  */
 export interface RecallResult {
   memories: Memory[];
-  anchors: Array<{
-    question: string;
-    answer: string | null;
-    confidence: number;
-  }>;
+  anchors: RecalledAnchor[];
   relationship?: {
     relatedMemories: Memory[];
-    anchors: Array<{
-      question: string;
-      answer: string | null;
-      confidence: number;
-    }>;
+    anchors: RecalledAnchor[];
   };
 }
 
