@@ -81,9 +81,9 @@ export class MemoryManager {
   constructor(private light: OpenFluctLight) {}
 
   /**
-   * 追加记忆
+   * 记住（追加记忆）
    */
-  async append(
+  async remember(
     soulId: string,
     content: string,
     options?: {

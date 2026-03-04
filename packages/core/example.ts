@@ -14,10 +14,10 @@ async function main() {
   const soul = await light.souls.create('Alice');
   console.log('创建灵魂:', soul);
 
-  // 追加记忆
-  await light.memories.append(soul.id, '我今天学会了 TypeScript 的泛型');
-  await light.memories.append(soul.id, '我喜欢独自思考问题');
-  await light.memories.append(soul.id, '团队协作让我感到充实');
+  // 记住
+  await light.memories.remember(soul.id, '我今天学会了 TypeScript 的泛型');
+  await light.memories.remember(soul.id, '我喜欢独自思考问题');
+  await light.memories.remember(soul.id, '团队协作让我感到充实');
   console.log('已添加 3 条记忆');
 
   // 记忆求索
