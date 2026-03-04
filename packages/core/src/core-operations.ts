@@ -1,7 +1,13 @@
 import { OpenFluctLight } from './core.js';
 import { MemoryManager } from './managers.js';
 import { AnchorManager, RelationshipManager } from './operations.js';
-import { SeekResult, RecallResult, Memory, Anchor, RecalledAnchor } from './types.js';
+import {
+  SeekResult,
+  RecallResult,
+  Memory,
+  Anchor,
+  RecalledAnchor,
+} from './types.js';
 
 /**
  * 求索操作
@@ -19,7 +25,8 @@ export class Seek {
    */
   async seek(soulId: string): Promise<SeekResult> {
     // 1. 检测矛盾
-    const contradictions = await this.anchorManager.detectContradictions(soulId);
+    const contradictions =
+      await this.anchorManager.detectContradictions(soulId);
 
     const newAnchors = [];
     const updatedAnchors = [];
@@ -37,7 +44,9 @@ export class Seek {
 
       // 检查是否已存在相同问题
       const existingAnchors = await this.anchorManager.list(soulId);
-      const existing = existingAnchors.find(i => i.question === suggestedQuestion);
+      const existing = existingAnchors.find(
+        (i) => i.question === suggestedQuestion
+      );
 
       if (existing) {
         // 更新已有锚点
@@ -95,10 +104,16 @@ export class Seek {
 
 直接给出答案，不要解释过程。`;
 
-    const answer = await this.light.complete([
-      { role: 'system', content: '你是一个善于辩证思考的哲学家，能够在矛盾中找到统一。' },
-      { role: 'user', content: prompt },
-    ], { temperature: 0.7 });
+    const answer = await this.light.complete(
+      [
+        {
+          role: 'system',
+          content: '你是一个善于辩证思考的哲学家，能够在矛盾中找到统一。',
+        },
+        { role: 'user', content: prompt },
+      ],
+      { temperature: 0.7 }
+    );
 
     return answer.trim();
   }
@@ -114,8 +129,9 @@ export class Seek {
       // 获取与该关系相关的记忆
       const relatedMemories = await this.memoryManager.list(soulId);
       const relationshipMemories = relatedMemories.filter(
-        m => m.type === 'relationship_note' && 
-             m.metadata?.targetId === rel.targetId
+        (m) =>
+          m.type === 'relationship_note' &&
+          m.metadata?.targetId === rel.targetId
       );
 
       if (relationshipMemories.length === 0) continue;
@@ -136,21 +152,16 @@ export class Seek {
 
         // 检查是否已存在
         const existingAnchors = await this.anchorManager.list(soulId);
-        const existing = existingAnchors.find(i => i.question === question);
+        const existing = existingAnchors.find((i) => i.question === question);
 
         if (existing) {
           await this.anchorManager.update(existing.id, answer, 0.7);
         } else {
-          await this.anchorManager.ask(
-            soulId,
-            question,
-            answer,
-            {
-              source: 'auto_discovered',
-              relatedMemoryIds: relationshipMemories.map(m => m.id),
-              confidence: 0.7,
-            }
-          );
+          await this.anchorManager.ask(soulId, question, answer, {
+            source: 'auto_discovered',
+            relatedMemoryIds: relationshipMemories.map((m) => m.id),
+            confidence: 0.7,
+          });
         }
       }
     }
@@ -172,10 +183,13 @@ ${memories.map((m, i) => `${i + 1}. ${m.content}`).join('\n')}
 
 请给出一个陈述句形式的答案，基于记忆中的事实和感受。直接给出答案，不要解释。`;
 
-    const answer = await this.light.complete([
-      { role: 'system', content: '你是一个善于理解人际关系的观察者。' },
-      { role: 'user', content: prompt },
-    ], { temperature: 0.6 });
+    const answer = await this.light.complete(
+      [
+        { role: 'system', content: '你是一个善于理解人际关系的观察者。' },
+        { role: 'user', content: prompt },
+      ],
+      { temperature: 0.6 }
+    );
 
     return answer.trim();
   }
@@ -212,49 +226,50 @@ export class Recall {
 
     // 2. 召回相关灵魂锚点
     const allAnchors = await this.anchorManager.list(soulId);
-    const relevantAnchors = await this.findRelevantAnchors(
-      prompt,
-      allAnchors
-    );
+    const relevantAnchors = await this.findRelevantAnchors(prompt, allAnchors);
 
     // 3. 如果指定了身份，召回关系信息
     let relationship = undefined;
     if (contextId) {
       const rel = await this.relationshipManager.get(soulId, contextId);
-      
+
       if (rel) {
         // 获取与该关系相关的记忆
         const allMemories = await this.memoryManager.list(soulId);
         const relatedMemories = allMemories.filter(
-          m => m.type === 'relationship_note' && 
-               m.metadata?.targetId === contextId
+          (m) =>
+            m.type === 'relationship_note' && m.metadata?.targetId === contextId
         );
 
         // 获取关系相关的锚点
-        const relationshipAnchors = allAnchors.filter(
-          i => i.question.includes(contextId)
+        const relationshipAnchors = allAnchors.filter((i) =>
+          i.question.includes(contextId)
         );
 
         relationship = {
           relatedMemories,
-          anchors: relationshipAnchors.map((i): RecalledAnchor => ({
-            id: i.id,
-            question: i.question,
-            answer: i.answer,
-            confidence: i.confidence,
-          })),
+          anchors: relationshipAnchors.map(
+            (i): RecalledAnchor => ({
+              id: i.id,
+              question: i.question,
+              answer: i.answer,
+              confidence: i.confidence,
+            })
+          ),
         };
       }
     }
 
     return {
       memories,
-      anchors: relevantAnchors.map((i): RecalledAnchor => ({
-        id: i.id,
-        question: i.question,
-        answer: i.answer,
-        confidence: i.confidence,
-      })),
+      anchors: relevantAnchors.map(
+        (i): RecalledAnchor => ({
+          id: i.id,
+          question: i.question,
+          answer: i.answer,
+          confidence: i.confidence,
+        })
+      ),
       relationship,
     };
   }
@@ -270,21 +285,24 @@ export class Recall {
 
     // 使用语义相似度找到相关锚点
     const promptEmbedding = await this.light.embed(prompt);
-    
+
     const withSimilarity = await Promise.all(
       anchors.map(async (i) => {
         const questionEmbedding = await this.light.embed(i.question);
-        const similarity = this.cosineSimilarity(promptEmbedding, questionEmbedding);
+        const similarity = this.cosineSimilarity(
+          promptEmbedding,
+          questionEmbedding
+        );
         return { anchor: i, similarity };
       })
     );
 
     // 返回相似度 > 0.6 的锚点，最多 10 个
     return withSimilarity
-      .filter(item => item.similarity > 0.6)
+      .filter((item) => item.similarity > 0.6)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 10)
-      .map(item => item.anchor);
+      .map((item) => item.anchor);
   }
 
   /**

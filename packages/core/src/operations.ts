@@ -1,6 +1,15 @@
 import { OpenFluctLight } from './core.js';
 import { anchors, relationships, memories } from './schema.js';
-import { Anchor, AnchorSource, Relationship, RelationshipTargetType, Memory, Contradiction, SeekResult, RecallResult } from './types.js';
+import {
+  Anchor,
+  AnchorSource,
+  Relationship,
+  RelationshipTargetType,
+  Memory,
+  Contradiction,
+  SeekResult,
+  RecallResult,
+} from './types.js';
 import { eq, and } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { MemoryManager } from './managers.js';
@@ -9,7 +18,10 @@ import { MemoryManager } from './managers.js';
  * 灵魂锚点管理器
  */
 export class AnchorManager {
-  constructor(private light: OpenFluctLight, private memoryManager: MemoryManager) {}
+  constructor(
+    private light: OpenFluctLight,
+    private memoryManager: MemoryManager
+  ) {}
 
   /**
    * 创建或更新灵魂锚点
@@ -83,7 +95,7 @@ export class AnchorManager {
       .from(anchors)
       .where(eq(anchors.soulId, soulId));
 
-    return results.map(row => ({
+    return results.map((row) => ({
       id: row.id,
       soulId: row.soulId,
       question: row.question,
@@ -98,7 +110,11 @@ export class AnchorManager {
   /**
    * 更新锚点答案
    */
-  async update(id: string, answer: string, confidence?: number): Promise<Anchor> {
+  async update(
+    id: string,
+    answer: string,
+    confidence?: number
+  ): Promise<Anchor> {
     await this.light['orm']
       .update(anchors)
       .set({
@@ -118,9 +134,22 @@ export class AnchorManager {
    */
   async updateAnchor(
     soulId: string,
-    params: 
-      | { action: 'create'; question: string; answer: string | null; source?: AnchorSource; confidence?: number; relatedMemoryIds?: string[] }
-      | { action: 'update'; anchorId: string; answer: string; confidence?: number; relatedMemoryIds?: string[] }
+    params:
+      | {
+          action: 'create';
+          question: string;
+          answer: string | null;
+          source?: AnchorSource;
+          confidence?: number;
+          relatedMemoryIds?: string[];
+        }
+      | {
+          action: 'update';
+          anchorId: string;
+          answer: string;
+          confidence?: number;
+          relatedMemoryIds?: string[];
+        }
       | { action: 'delete'; anchorId: string }
   ): Promise<Anchor | void> {
     if (params.action === 'create') {
@@ -136,17 +165,19 @@ export class AnchorManager {
         console.warn(`Anchor ${params.anchorId} not found, skipping update`);
         return undefined;
       }
-      
+
       await this.light['orm']
         .update(anchors)
         .set({
           answer: params.answer,
           confidence: params.confidence ?? 1.0,
           lastUpdated: new Date(),
-          relatedMemoryIds: params.relatedMemoryIds ? JSON.stringify(params.relatedMemoryIds) : undefined,
+          relatedMemoryIds: params.relatedMemoryIds
+            ? JSON.stringify(params.relatedMemoryIds)
+            : undefined,
         })
         .where(eq(anchors.id, params.anchorId));
-      
+
       const updated = await this.get(params.anchorId);
       if (!updated) throw new Error('Anchor not found after update');
       return updated;
@@ -163,7 +194,7 @@ export class AnchorManager {
   async detectContradictions(soulId: string): Promise<Contradiction[]> {
     // 获取该灵魂的所有记忆
     const allMemories = await this.memoryManager.list(soulId);
-    
+
     if (allMemories.length < 2) return [];
 
     const contradictions: Contradiction[] = [];
@@ -173,7 +204,7 @@ export class AnchorManager {
     const batchSize = 20;
     for (let i = 0; i < allMemories.length; i += batchSize) {
       const batch = allMemories.slice(i, i + batchSize);
-      
+
       const prompt = `分析以下记忆片段，找出其中相互矛盾的记忆对。矛盾是指在相似情境下表达了相反的观点、态度或行为倾向。
 
 记忆列表：
@@ -187,10 +218,13 @@ ${batch.map((m, idx) => `${idx + 1}. [${m.timestamp.toISOString()}] ${m.content}
 
 如果没有发现矛盾，返回空数组 []。`;
 
-      const response = await this.light.complete([
-        { role: 'system', content: '你是一个善于发现认知矛盾的哲学家。' },
-        { role: 'user', content: prompt },
-      ], { temperature: 0.3 });
+      const response = await this.light.complete(
+        [
+          { role: 'system', content: '你是一个善于发现认知矛盾的哲学家。' },
+          { role: 'user', content: prompt },
+        ],
+        { temperature: 0.3 }
+      );
 
       try {
         const detected = JSON.parse(response) as Array<{
@@ -253,7 +287,9 @@ export class RelationshipManager {
       targetId: relationship.targetId,
       targetType: relationship.targetType,
       lastInteraction: relationship.lastInteraction,
-      metadata: relationship.metadata ? JSON.stringify(relationship.metadata) : null,
+      metadata: relationship.metadata
+        ? JSON.stringify(relationship.metadata)
+        : null,
     });
 
     return relationship;
@@ -266,7 +302,12 @@ export class RelationshipManager {
     const result = await this.light['orm']
       .select()
       .from(relationships)
-      .where(and(eq(relationships.soulId, soulId), eq(relationships.targetId, targetId)))
+      .where(
+        and(
+          eq(relationships.soulId, soulId),
+          eq(relationships.targetId, targetId)
+        )
+      )
       .limit(1);
 
     if (result.length === 0) return null;
@@ -278,7 +319,9 @@ export class RelationshipManager {
       targetId: row.targetId,
       targetType: row.targetType as RelationshipTargetType,
       lastInteraction: row.lastInteraction,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
+      metadata: row.metadata
+        ? (JSON.parse(row.metadata as string) as Record<string, unknown>)
+        : undefined,
     };
   }
 
@@ -291,13 +334,15 @@ export class RelationshipManager {
       .from(relationships)
       .where(eq(relationships.soulId, soulId));
 
-    return results.map(row => ({
+    return results.map((row) => ({
       id: row.id,
       soulId: row.soulId,
       targetId: row.targetId,
       targetType: row.targetType as RelationshipTargetType,
       lastInteraction: row.lastInteraction,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
+      metadata: row.metadata
+        ? (JSON.parse(row.metadata as string) as Record<string, unknown>)
+        : undefined,
     }));
   }
 
@@ -308,6 +353,11 @@ export class RelationshipManager {
     await this.light['orm']
       .update(relationships)
       .set({ lastInteraction: new Date() })
-      .where(and(eq(relationships.soulId, soulId), eq(relationships.targetId, targetId)));
+      .where(
+        and(
+          eq(relationships.soulId, soulId),
+          eq(relationships.targetId, targetId)
+        )
+      );
   }
 }

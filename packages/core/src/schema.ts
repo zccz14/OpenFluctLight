@@ -15,7 +15,9 @@ export const souls = sqliteTable('souls', {
  */
 export const memories = sqliteTable('memories', {
   id: text('id').primaryKey(),
-  soulId: text('soul_id').notNull().references(() => souls.id, { onDelete: 'cascade' }),
+  soulId: text('soul_id')
+    .notNull()
+    .references(() => souls.id, { onDelete: 'cascade' }),
   content: text('content').notNull(),
   type: text('type').notNull(), // 'experience' | 'knowledge' | 'conversation' | 'relationship_note'
   timestamp: integer('timestamp', { mode: 'timestamp' }).notNull(),
@@ -27,7 +29,9 @@ export const memories = sqliteTable('memories', {
  */
 export const anchors = sqliteTable('anchors', {
   id: text('id').primaryKey(),
-  soulId: text('soul_id').notNull().references(() => souls.id, { onDelete: 'cascade' }),
+  soulId: text('soul_id')
+    .notNull()
+    .references(() => souls.id, { onDelete: 'cascade' }),
   question: text('question').notNull(),
   answer: text('answer'),
   source: text('source').notNull(), // 'predefined' | 'auto_discovered'
@@ -41,7 +45,9 @@ export const anchors = sqliteTable('anchors', {
  */
 export const relationships = sqliteTable('relationships', {
   id: text('id').primaryKey(),
-  soulId: text('soul_id').notNull().references(() => souls.id, { onDelete: 'cascade' }),
+  soulId: text('soul_id')
+    .notNull()
+    .references(() => souls.id, { onDelete: 'cascade' }),
   targetId: text('target_id').notNull(),
   targetType: text('target_type').notNull(), // 'soul' | 'external'
   lastInteraction: integer('last_interaction', { mode: 'timestamp' }).notNull(),

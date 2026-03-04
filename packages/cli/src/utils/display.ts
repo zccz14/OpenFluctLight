@@ -18,18 +18,24 @@ interface RecalledAnchor {
 export function displayRecalled(memories: Memory[], anchors: RecalledAnchor[]) {
   if (memories.length > 0) {
     console.log(chalk.yellow(`\n[召回记忆 ${memories.length} 条]`));
-    memories.slice(0, 3).forEach(m => {
+    memories.slice(0, 3).forEach((m) => {
       const timestamp = new Date(m.timestamp).toISOString();
-      console.log(chalk.gray(`• ${m.content.substring(0, 60)}... (${timestamp})`));
+      console.log(
+        chalk.gray(`• ${m.content.substring(0, 60)}... (${timestamp})`)
+      );
     });
   }
 
   if (anchors.length > 0) {
     console.log(chalk.yellow(`\n[相关锚点 ${anchors.length} 个]`));
-    anchors.slice(0, 2).forEach(a => {
+    anchors.slice(0, 2).forEach((a) => {
       console.log(chalk.gray(`• ${a.question}`));
       if (a.answer) {
-        console.log(chalk.gray(`  → "${a.answer.substring(0, 50)}..." (置信度: ${a.confidence.toFixed(2)})`));
+        console.log(
+          chalk.gray(
+            `  → "${a.answer.substring(0, 50)}..." (置信度: ${a.confidence.toFixed(2)})`
+          )
+        );
       } else {
         console.log(chalk.gray(`  → (未回答)`));
       }
@@ -40,8 +46,12 @@ export function displayRecalled(memories: Memory[], anchors: RecalledAnchor[]) {
 export function displayAnchorUpdates(anchors: Anchor[]) {
   if (anchors.length > 0) {
     console.log(chalk.green(`\n[锚点更新]`));
-    anchors.forEach(a => {
-      console.log(chalk.green(`✓ ${a.source === 'predefined' ? '更新' : '新增'}锚点: "${a.question}"`));
+    anchors.forEach((a) => {
+      console.log(
+        chalk.green(
+          `✓ ${a.source === 'predefined' ? '更新' : '新增'}锚点: "${a.question}"`
+        )
+      );
       if (a.answer) {
         console.log(chalk.gray(`  新答案: "${a.answer.substring(0, 80)}..."`));
       }

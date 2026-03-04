@@ -14,7 +14,10 @@ export class SoulManager {
   /**
    * 创建灵魂
    */
-  async create(name: string, metadata?: Record<string, unknown>): Promise<Soul> {
+  async create(
+    name: string,
+    metadata?: Record<string, unknown>
+  ): Promise<Soul> {
     const soul: Soul = {
       id: randomUUID(),
       name,
@@ -63,7 +66,9 @@ export class SoulManager {
       id: row.id,
       name: row.name,
       createdAt: row.createdAt,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
+      metadata: row.metadata
+        ? (JSON.parse(row.metadata as string) as Record<string, unknown>)
+        : undefined,
     };
   }
 
@@ -73,11 +78,13 @@ export class SoulManager {
   async list(): Promise<Soul[]> {
     const results = await this.light['orm'].select().from(souls);
 
-    return results.map(row => ({
+    return results.map((row) => ({
       id: row.id,
       name: row.name,
       createdAt: row.createdAt,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
+      metadata: row.metadata
+        ? (JSON.parse(row.metadata as string) as Record<string, unknown>)
+        : undefined,
     }));
   }
 
@@ -160,7 +167,9 @@ export class MemoryManager {
       content: row.content,
       type: row.type as MemoryType,
       timestamp: row.timestamp,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
+      metadata: row.metadata
+        ? (JSON.parse(row.metadata as string) as Record<string, unknown>)
+        : undefined,
     };
   }
 
@@ -182,30 +191,39 @@ export class MemoryManager {
     const queryVector = await this.light.embed(query);
 
     // 向量搜索
-    const results = await this.light['vectorIndex'].queryItems(queryVector, query, limit * 2);
+    const results = await this.light['vectorIndex'].queryItems(
+      queryVector,
+      query,
+      limit * 2
+    );
 
     // 过滤属于该灵魂的记忆
     const filteredResults = results
-      .filter(r => r.item.metadata.soulId === soulId && r.score >= minSimilarity)
+      .filter(
+        (r) => r.item.metadata.soulId === soulId && r.score >= minSimilarity
+      )
       .slice(0, limit);
 
     // 获取完整记忆信息
-    const memoryPromises = filteredResults.map(r => this.get(r.item.id));
+    const memoryPromises = filteredResults.map((r) => this.get(r.item.id));
     const memoriesWithNull = await Promise.all(memoryPromises);
-    
+
     return memoriesWithNull.filter((m): m is Memory => m !== null);
   }
 
   /**
    * 列出灵魂的所有记忆
    */
-  async list(soulId: string, options?: {
-    limit?: number;
-    offset?: number;
-    orderBy?: 'asc' | 'desc';
-  }): Promise<Memory[]> {
+  async list(
+    soulId: string,
+    options?: {
+      limit?: number;
+      offset?: number;
+      orderBy?: 'asc' | 'desc';
+    }
+  ): Promise<Memory[]> {
     const orderByOption = options?.orderBy || 'asc';
-    
+
     // 构建基础查询
     const baseQuery = this.light['orm']
       .select()
@@ -213,9 +231,10 @@ export class MemoryManager {
       .where(eq(memories.soulId, soulId));
 
     // 根据排序选项构建查询
-    const orderedQuery = orderByOption === 'desc' 
-      ? baseQuery.orderBy(desc(memories.timestamp))
-      : baseQuery.orderBy(memories.timestamp);
+    const orderedQuery =
+      orderByOption === 'desc'
+        ? baseQuery.orderBy(desc(memories.timestamp))
+        : baseQuery.orderBy(memories.timestamp);
 
     // 应用 limit 和 offset
     let finalQuery = orderedQuery;
@@ -228,13 +247,15 @@ export class MemoryManager {
 
     const results = await finalQuery;
 
-    return results.map(row => ({
+    return results.map((row) => ({
       id: row.id,
       soulId: row.soulId,
       content: row.content,
       type: row.type as MemoryType,
       timestamp: row.timestamp,
-      metadata: row.metadata ? JSON.parse(row.metadata as string) as Record<string, unknown> : undefined,
+      metadata: row.metadata
+        ? (JSON.parse(row.metadata as string) as Record<string, unknown>)
+        : undefined,
     }));
   }
 

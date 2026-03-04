@@ -2,9 +2,9 @@ import { OpenFluctLight } from './core.js';
 import { Anchor, Memory, RecallResult, RecalledAnchor } from './types.js';
 
 export interface ChatOptions {
-  contextId?: string;  // 对话对象的身份
-  userName?: string;   // 用户名称
-  verbose?: boolean;   // 是否输出详细日志
+  contextId?: string; // 对话对象的身份
+  userName?: string; // 用户名称
+  verbose?: boolean; // 是否输出详细日志
 }
 
 export interface ChatResult {
@@ -53,7 +53,7 @@ export class Chat {
     // 1. Remember 用户输入
     await this.light.memories.remember(soulId, `${userName}说：${userInput}`, {
       type: 'conversation',
-      metadata: { speaker: userName, role: 'user' }
+      metadata: { speaker: userName, role: 'user' },
     });
 
     if (verbose) {
@@ -64,7 +64,11 @@ export class Chat {
     }
 
     // 2. Recall 召回认知
-    const recalled = await this.light.recall.recall(soulId, userInput, contextId);
+    const recalled = await this.light.recall.recall(
+      soulId,
+      userInput,
+      contextId
+    );
 
     if (verbose) {
       console.log(`\n📚 召回了 ${recalled.memories.length} 条记忆:`);
@@ -74,7 +78,9 @@ export class Chat {
       console.log(`\n⚓ 召回了 ${recalled.anchors.length} 个锚点:`);
       recalled.anchors.forEach((a, i) => {
         console.log(`  ${i + 1}. "${a.question}"`);
-        console.log(`     → ${a.answer || '(未回答)'} (置信度: ${a.confidence.toFixed(2)})`);
+        console.log(
+          `     → ${a.answer || '(未回答)'} (置信度: ${a.confidence.toFixed(2)})`
+        );
       });
     }
 
@@ -100,10 +106,14 @@ export class Chat {
     }
 
     // 4. Remember AI 回复
-    await this.light.memories.remember(soulId, `我回复${userName}：${llmResult.response}`, {
-      type: 'conversation',
-      metadata: { speaker: 'self', role: 'assistant', targetUser: userName }
-    });
+    await this.light.memories.remember(
+      soulId,
+      `我回复${userName}：${llmResult.response}`,
+      {
+        type: 'conversation',
+        metadata: { speaker: 'self', role: 'assistant', targetUser: userName },
+      }
+    );
 
     if (verbose) {
       console.log(`✓ 已记录: 我回复${userName}：${llmResult.response}\n`);
@@ -121,7 +131,7 @@ export class Chat {
 
       for (const update of llmResult.updates) {
         let result: Anchor | void = undefined;
-        
+
         if (update.action === 'create') {
           if (verbose) {
             console.log(`  ➕ 创建新锚点: "${update.question}"`);
@@ -146,7 +156,7 @@ export class Chat {
             answer: update.answer,
           });
         }
-        
+
         if (result) {
           updatedAnchors.push(result);
         }
@@ -163,7 +173,7 @@ export class Chat {
       }
       await this.light.memories.remember(soulId, llmResult.awareness, {
         type: 'experience',
-        metadata: { category: 'self-awareness' }
+        metadata: { category: 'self-awareness' },
       });
     }
 
@@ -179,7 +189,7 @@ export class Chat {
       recalled: {
         memories: recalled.memories,
         anchors: recalled.anchors,
-      }
+      },
     };
   }
 
@@ -197,12 +207,12 @@ export class Chat {
     // 获取最近的对话记忆（最近10条）
     const recentMemories = await this.light.memories.list(soulId, {
       limit: 10,
-      orderBy: 'desc'
+      orderBy: 'desc',
     });
-    
+
     // 过滤出对话类型的记忆，并按时间正序排列
     const recentConversations = recentMemories
-      .filter(m => m.type === 'conversation')
+      .filter((m) => m.type === 'conversation')
       .reverse(); // 从旧到新排列
 
     const recentConversationsText = recentConversations
@@ -216,7 +226,10 @@ export class Chat {
       .join('\n');
 
     const anchorsText = recalled.anchors
-      .map((a: RecalledAnchor) => `- [ID: ${a.id}] "${a.question}"\n  → ${a.answer || '(未回答)'} (置信度: ${a.confidence.toFixed(2)})`)
+      .map(
+        (a: RecalledAnchor) =>
+          `- [ID: ${a.id}] "${a.question}"\n  → ${a.answer || '(未回答)'} (置信度: ${a.confidence.toFixed(2)})`
+      )
       .join('\n');
 
     const prompt = `你是一个灵魂，名为 ${soulName}。
@@ -365,10 +378,17 @@ ${userName}说：${userInput}
       console.log('-'.repeat(60));
     }
 
-    const response = await this.light.complete([
-      { role: 'system', content: '你是一个善于自我反思的灵魂。请严格按照 JSON 格式返回，不要添加任何额外的文字或 markdown 标记。' },
-      { role: 'user', content: prompt },
-    ], { temperature: 0.7 });
+    const response = await this.light.complete(
+      [
+        {
+          role: 'system',
+          content:
+            '你是一个善于自我反思的灵魂。请严格按照 JSON 格式返回，不要添加任何额外的文字或 markdown 标记。',
+        },
+        { role: 'user', content: prompt },
+      ],
+      { temperature: 0.7 }
+    );
 
     if (verbose) {
       console.log('\n📥 LLM 原始响应:');
@@ -382,11 +402,15 @@ ${userName}说：${userInput}
       // 清理可能的 markdown 代码块标记
       let cleanedResponse = response.trim();
       if (cleanedResponse.startsWith('```json')) {
-        cleanedResponse = cleanedResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        cleanedResponse = cleanedResponse
+          .replace(/^```json\s*/, '')
+          .replace(/\s*```$/, '');
       } else if (cleanedResponse.startsWith('```')) {
-        cleanedResponse = cleanedResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        cleanedResponse = cleanedResponse
+          .replace(/^```\s*/, '')
+          .replace(/\s*```$/, '');
       }
-      
+
       const parsed = JSON.parse(cleanedResponse) as {
         response: string;
         needsUpdate?: boolean;
@@ -399,14 +423,14 @@ ${userName}说：${userInput}
           reasoning: string;
         }>;
       };
-      
+
       if (verbose) {
         console.log('\n✅ 解析后的 LLM 响应:');
         console.log('-'.repeat(60));
         console.log(JSON.stringify(parsed, null, 2));
         console.log('-'.repeat(60));
       }
-      
+
       return {
         response: parsed.response,
         needsUpdate: parsed.needsUpdate || false,

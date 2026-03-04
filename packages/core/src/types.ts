@@ -11,7 +11,11 @@ export interface Soul {
 /**
  * 记忆类型
  */
-export type MemoryType = 'experience' | 'knowledge' | 'conversation' | 'relationship_note';
+export type MemoryType =
+  | 'experience'
+  | 'knowledge'
+  | 'conversation'
+  | 'relationship_note';
 
 /**
  * 记忆

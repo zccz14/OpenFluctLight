@@ -59,21 +59,24 @@ export class InitCommand extends Command {
         name: 'embeddingApiKey',
         message: 'Embedding API Key:',
         default: process.env.OPENAI_API_KEY || '',
-        when: (answers: Partial<InitAnswers>) => answers.embeddingType === 'openai',
+        when: (answers: Partial<InitAnswers>) =>
+          answers.embeddingType === 'openai',
       },
       {
         type: 'input',
         name: 'embeddingBaseURL',
         message: 'Embedding Base URL:',
         default: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
-        when: (answers: Partial<InitAnswers>) => answers.embeddingType === 'openai',
+        when: (answers: Partial<InitAnswers>) =>
+          answers.embeddingType === 'openai',
       },
       {
         type: 'input',
         name: 'embeddingModel',
         message: 'Embedding 模型:',
         default: 'text-embedding-3-small',
-        when: (answers: Partial<InitAnswers>) => answers.embeddingType === 'openai',
+        when: (answers: Partial<InitAnswers>) =>
+          answers.embeddingType === 'openai',
       },
       {
         type: 'input',
@@ -128,11 +131,19 @@ export class InitCommand extends Command {
 
     console.log(chalk.green(`\n✓ 配置已保存到: ${configPath}`));
     console.log(chalk.green(`✓ 数据目录: ${answers.dataPath}`));
-    console.log(chalk.green(`✓ LLM: ${answers.llmModel} (${answers.llmBaseURL})`));
+    console.log(
+      chalk.green(`✓ LLM: ${answers.llmModel} (${answers.llmBaseURL})`)
+    );
     if (answers.embeddingType === 'local') {
-      console.log(chalk.yellow('✓ Embedding: 本地模型（首次使用时会自动下载约 300MB）'));
+      console.log(
+        chalk.yellow('✓ Embedding: 本地模型（首次使用时会自动下载约 300MB）')
+      );
     } else {
-      console.log(chalk.green(`✓ Embedding: ${answers.embeddingModel} (${answers.embeddingBaseURL})`));
+      console.log(
+        chalk.green(
+          `✓ Embedding: ${answers.embeddingModel} (${answers.embeddingBaseURL})`
+        )
+      );
     }
     console.log(chalk.cyan('\n现在可以使用: ofl chat -s <灵魂名称>'));
 

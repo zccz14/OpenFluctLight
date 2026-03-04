@@ -5,7 +5,12 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { displayWelcome, displayRecalled, displayAnchorUpdates, displaySeparator } from '../utils/display.js';
+import {
+  displayWelcome,
+  displayRecalled,
+  displayAnchorUpdates,
+  displaySeparator,
+} from '../utils/display.js';
 
 interface Config {
   dataPath: string;
@@ -27,9 +32,7 @@ export class ChatCommand extends Command {
 
   static usage = Command.Usage({
     description: '与灵魂对话',
-    examples: [
-      ['与名为 Alice 的灵魂对话', 'ofl chat -s Alice'],
-    ],
+    examples: [['与名为 Alice 的灵魂对话', 'ofl chat -s Alice']],
   });
 
   soul = Option.String('-s,--soul', {
@@ -48,8 +51,12 @@ export class ChatCommand extends Command {
   });
 
   async execute() {
-    const configPath = path.join(os.homedir(), '.openfluctlight', 'config.json');
-    
+    const configPath = path.join(
+      os.homedir(),
+      '.openfluctlight',
+      'config.json'
+    );
+
     // 检查配置文件
     if (!fs.existsSync(configPath)) {
       console.log(chalk.red('错误: 未找到配置文件'));
@@ -76,12 +83,14 @@ export class ChatCommand extends Command {
 
     // 检查或创建灵魂
     let souls = await light.souls.list();
-    let soul = souls.find(s => s.name === this.soul);
+    let soul = souls.find((s) => s.name === this.soul);
 
     if (!soul) {
       console.log(chalk.yellow(`灵魂 "${this.soul}" 不存在，正在创建...`));
       soul = await light.souls.create(this.soul!);
-      console.log(chalk.green(`✓ 灵魂 "${this.soul}" 已创建，包含 28 个预设锚点`));
+      console.log(
+        chalk.green(`✓ 灵魂 "${this.soul}" 已创建，包含 28 个预设锚点`)
+      );
       console.log();
     }
 
@@ -102,7 +111,10 @@ export class ChatCommand extends Command {
         continue;
       }
 
-      if (userInput.toLowerCase() === 'exit' || userInput.toLowerCase() === 'quit') {
+      if (
+        userInput.toLowerCase() === 'exit' ||
+        userInput.toLowerCase() === 'quit'
+      ) {
         console.log(chalk.cyan('\n再见！'));
         await light.close();
         break;
@@ -128,7 +140,8 @@ export class ChatCommand extends Command {
 
         displaySeparator();
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         const errorStack = error instanceof Error ? error.stack : '';
         console.error(chalk.red(`\n错误: ${errorMessage}`));
         console.error(chalk.gray(errorStack));

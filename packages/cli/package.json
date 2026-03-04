@@ -21,6 +21,11 @@
     "@types/inquirer": "^8.2.6",
     "typescript": "^5.9.3"
   },
-  "keywords": ["soul", "memory", "ai", "cli"],
+  "keywords": [
+    "soul",
+    "memory",
+    "ai",
+    "cli"
+  ],
   "license": "MIT"
 }
