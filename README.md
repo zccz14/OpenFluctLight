@@ -48,10 +48,20 @@ node dist/index.js init
 
 按提示输入配置信息：
 - **数据存储路径**：默认 `~/.openfluctlight/data`
-- **OpenAI API Key**：你的 API 密钥
-- **OpenAI Base URL**：默认 `https://api.openai.com/v1`（支持兼容接口）
+- **OpenAI API Key**：你的 API 密钥（或设置环境变量 `OPENAI_API_KEY`）
+- **OpenAI Base URL**：默认 `https://api.openai.com/v1`（或设置环境变量 `OPENAI_BASE_URL`，支持兼容接口）
 - **Embedding 模型**：默认 `text-embedding-3-small`
 - **LLM 模型**：默认 `gpt-4o-mini`
+
+配置文件保存在 `~/.openfluctlight/config.json`
+
+**环境变量支持：**
+```bash
+export OPENAI_API_KEY="sk-..."
+export OPENAI_BASE_URL="https://api.openai.com/v1"  # 可选
+```
+
+如果设置了环境变量，`ofl init` 会自动使用这些值作为默认值。
 
 ### 开始对话
 
