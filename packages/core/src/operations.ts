@@ -1,6 +1,6 @@
 import { OpenFluctLight } from './core';
 import { anchors, relationships, memories } from './schema';
-import { Anchor, AnchorSource, Relationship, RelationshipTargetType, Memory, Contradiction, SeekResult, QueryResult } from './types';
+import { Anchor, AnchorSource, Relationship, RelationshipTargetType, Memory, Contradiction, SeekResult, RecallResult } from './types';
 import { eq, and } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { MemoryManager } from './managers';

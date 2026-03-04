@@ -8,7 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import { SoulManager, MemoryManager } from './managers';
 import { AnchorManager, RelationshipManager } from './operations';
-import { QuestionSeek, QueryInference } from './core-operations';
+import { Seek, Recall } from './core-operations';
 
 export interface OpenFluctLightConfig {
   dataPath: string;
@@ -34,8 +34,8 @@ export class OpenFluctLight {
   public relationships: RelationshipManager;
   
   // 核心操作
-  public questionSeek: QuestionSeek;
-  public queryInference: QueryInference;
+  public seek: Seek;
+  public recall: Recall;
 
   constructor(config: OpenFluctLightConfig) {
     this.config = {
@@ -72,8 +72,8 @@ export class OpenFluctLight {
     this.relationships = new RelationshipManager(this);
     
     // 初始化核心操作
-    this.questionSeek = new QuestionSeek(this, this.memories, this.anchors, this.relationships);
-    this.queryInference = new QueryInference(this, this.memories, this.anchors, this.relationships);
+    this.seek = new Seek(this, this.memories, this.anchors, this.relationships);
+    this.recall = new Recall(this, this.memories, this.anchors, this.relationships);
   }
 
   /**

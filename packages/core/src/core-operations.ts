@@ -1,12 +1,12 @@
 import { OpenFluctLight } from './core';
 import { MemoryManager } from './managers';
 import { AnchorManager, RelationshipManager } from './operations';
-import { SeekResult, QueryResult, Memory } from './types';
+import { SeekResult, RecallResult, Memory } from './types';
 
 /**
- * 记忆求索操作
+ * 求索操作
  */
-export class QuestionSeek {
+export class Seek {
   constructor(
     private light: OpenFluctLight,
     private memoryManager: MemoryManager,
@@ -182,9 +182,9 @@ ${memories.map((m, i) => `${i + 1}. ${m.content}`).join('\n')}
 }
 
 /**
- * 提问推理操作
+ * 回想操作
  */
-export class QueryInference {
+export class Recall {
   constructor(
     private light: OpenFluctLight,
     private memoryManager: MemoryManager,
@@ -193,16 +193,16 @@ export class QueryInference {
   ) {}
 
   /**
-   * 执行提问推理
+   * 执行回想
    */
-  async query(
+  async recall(
     soulId: string,
     prompt: string,
     contextId?: string,
     options?: {
       memoryLimit?: number;
     }
-  ): Promise<QueryResult> {
+  ): Promise<RecallResult> {
     const memoryLimit = options?.memoryLimit || 20;
 
     // 1. 召回相关记忆

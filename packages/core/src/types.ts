@@ -72,9 +72,9 @@ export interface Contradiction {
 }
 
 /**
- * 提问推理结果
+ * 回想结果
  */
-export interface QueryResult {
+export interface RecallResult {
   memories: Memory[];
   anchors: Array<{
     question: string;
@@ -92,7 +92,7 @@ export interface QueryResult {
 }
 
 /**
- * 记忆求索结果
+ * 求索结果
  */
 export interface SeekResult {
   contradictions: Contradiction[];
