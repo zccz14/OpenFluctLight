@@ -167,16 +167,21 @@ action: 'create' | 'update' | 'delete'
 
 ### 流程设计
 
-**1. Remember 阶段**
+**1. Remember 阶段（用户输入）**
 ```
-memory = Remember(soulId, userInput, {type: 'conversation'})
+userMemory = Remember(soulId, `用户 ${userName} 说：${userInput}`, {
+  type: 'conversation',
+  metadata: { speaker: userName, role: 'user' }
+})
 ```
+记录：用户 X 在何时说了什么话。
 
 **2. Recall 阶段**
 ```
 recalled = Recall(soulId, userInput, contextId)
 // 返回：memories, anchors, relationship
 ```
+召回相关记忆和认知，为生成回复提供依据。
 
 **3. LLM 判断阶段**
 ```
@@ -189,11 +194,13 @@ recalled = Recall(soulId, userInput, contextId)
 任务：
 1. 生成回复
 2. 判断是否需要更新锚点
+3. 如果需要更新，说明意识到了什么
 
 输出：
 {
   response: string,
   needsUpdate: boolean,
+  awareness?: string,  // 我意识到了什么
   updates?: Array<{
     action: 'create' | 'update',
     anchorId?: string,
@@ -204,7 +211,16 @@ recalled = Recall(soulId, userInput, contextId)
 }
 ```
 
-**4. UpdateAnchor 阶段（条件性）**
+**4. Remember 阶段（AI 回复）**
+```
+aiMemory = Remember(soulId, `我回复 ${userName}：${response}`, {
+  type: 'conversation',
+  metadata: { speaker: 'self', role: 'assistant', targetUser: userName }
+})
+```
+记录：我（灵魂）在何时回复了 X，回复了什么内容。
+
+**5. UpdateAnchor 阶段（条件性）**
 ```
 if (needsUpdate) {
   for (update of updates) {
@@ -213,13 +229,50 @@ if (needsUpdate) {
 }
 ```
 
-**5. 返回**
+**6. Remember 阶段（认知更新）**
+```
+if (needsUpdate && awareness) {
+  awarenessMemory = Remember(soulId, awareness, {
+    type: 'experience',
+    metadata: { category: 'self-awareness' }
+  })
+}
+```
+记录：我意识到了什么。例如："我意识到自己在不同情境下对风险的态度是不同的"。
+
+**7. 返回**
 ```
 return {
   response: string,
   updatedAnchors?: Anchor[]
 }
 ```
+
+### Remember 的三次调用
+
+Chat 操作中，Remember 被调用最多三次，每次记录不同类型的内容：
+
+**第一次：用户输入**
+- 内容：`用户 X 说：[用户的话]`
+- 类型：conversation
+- 意义：记录外界的输入，他者的观点
+
+**第二次：AI 回复**
+- 内容：`我回复 X：[我的回复]`
+- 类型：conversation
+- 意义：记录自己的输出，自己的表达
+
+**第三次：认知更新（可选）**
+- 内容：`我意识到 [某个认知]`
+- 类型：experience
+- 意义：记录元认知，自我反思的结果
+
+这三类记忆共同构成了完整的对话经历：
+- 他者说了什么
+- 我说了什么
+- 我从中领悟了什么
+
+这些记忆都会成为后续 Recall 和求索的素材，让灵魂能够回顾自己的成长轨迹。
 
 ### 增量求索策略
 
