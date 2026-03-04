@@ -55,7 +55,7 @@ node dist/index.js init
 
 **Embedding 服务类型：**
 
-- **本地模型**（推荐）：无需 API Key，首次使用会自动下载约 23MB 的模型
+- **本地模型**（推荐）：无需 API Key，首次使用会自动下载约 300MB 的模型
 - **OpenAI API**：需要 API Key，质量更好但有成本
 
 **其他配置：**
@@ -74,7 +74,7 @@ export OPENAI_BASE_URL="https://api.openai.com/v1"  # 可选
 
 **注意：**
 
-- 本地 Embedding 使用 Transformers.js 和 all-MiniLM-L6-v2 模型（384 维向量）
+- 本地 Embedding 使用 node-llama-cpp 和 embeddinggemma-300m-qat-Q8_0 模型
 - 首次使用会自动下载模型文件，之后会缓存在本地
 - LLM 服务仍然需要 OpenAI API Key（用于对话生成）
 
