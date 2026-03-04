@@ -1,0 +1,25 @@
+{
+  "name": "@openfluctlight/core",
+  "version": "0.1.0",
+  "description": "OpenFluctLight core library - Digital soul container",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "soul",
+    "memory",
+    "ai",
+    "consciousness"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "drizzle-orm": "^0.45.1",
+    "openai": "^6.25.0",
+    "vectra": "^0.12.3"
+  }
+}
