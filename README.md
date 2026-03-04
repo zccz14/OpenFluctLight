@@ -46,22 +46,28 @@ cd packages/cli
 node dist/index.js init
 ```
 
-按提示输入配置信息：
+按提示选择配置：
+
+**Embedding 服务类型：**
+- **本地模型**（推荐）：无需 API Key，首次使用会自动下载约 23MB 的模型
+- **OpenAI API**：需要 API Key，质量更好但有成本
+
+**其他配置：**
 - **数据存储路径**：默认 `~/.openfluctlight/data`
-- **OpenAI API Key**：你的 API 密钥（或设置环境变量 `OPENAI_API_KEY`）
-- **OpenAI Base URL**：默认 `https://api.openai.com/v1`（或设置环境变量 `OPENAI_BASE_URL`，支持兼容接口）
-- **Embedding 模型**：默认 `text-embedding-3-small`
-- **LLM 模型**：默认 `gpt-4o-mini`
+- **LLM 模型**：默认 `gpt-4o-mini`（用于对话生成和锚点判断）
 
 配置文件保存在 `~/.openfluctlight/config.json`
 
 **环境变量支持：**
 ```bash
-export OPENAI_API_KEY="sk-..."
+export OPENAI_API_KEY="sk-..."  # 如果使用 OpenAI Embedding
 export OPENAI_BASE_URL="https://api.openai.com/v1"  # 可选
 ```
 
-如果设置了环境变量，`ofl init` 会自动使用这些值作为默认值。
+**注意：** 
+- 本地 Embedding 使用 Transformers.js 和 all-MiniLM-L6-v2 模型（384 维向量）
+- 首次使用会自动下载模型文件，之后会缓存在本地
+- LLM 服务仍然需要 OpenAI API Key（用于对话生成）
 
 ### 开始对话
 

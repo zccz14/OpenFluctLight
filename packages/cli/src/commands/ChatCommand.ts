@@ -46,6 +46,7 @@ export class ChatCommand extends Command {
       openaiApiKey: config.openaiApiKey,
       openaiBaseURL: config.openaiBaseURL,
       embeddingModel: config.embeddingModel,
+      useLocalEmbedding: config.useLocalEmbedding || false,
     });
 
     await light.initialize();

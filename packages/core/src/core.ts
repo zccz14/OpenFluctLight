@@ -10,12 +10,14 @@ import { SoulManager, MemoryManager } from './managers';
 import { AnchorManager, RelationshipManager } from './operations';
 import { Recall } from './core-operations';
 import { Chat } from './chat';
+import { LocalEmbedding } from './local-embedding';
 
 export interface OpenFluctLightConfig {
   dataPath: string;
   openaiApiKey?: string;
   openaiBaseURL?: string;
   embeddingModel?: string;
+  useLocalEmbedding?: boolean;  // 是否使用本地 Embedding
 }
 
 /**
@@ -25,7 +27,8 @@ export class OpenFluctLight {
   private db: Database.Database;
   private orm: ReturnType<typeof drizzle>;
   private vectorIndex: LocalIndex;
-  private openai: OpenAI;
+  private openai!: OpenAI;
+  private localEmbedding: LocalEmbedding | null = null;
   private config: Required<OpenFluctLightConfig>;
 
   // 管理器
@@ -46,6 +49,7 @@ export class OpenFluctLight {
       openaiApiKey: config.openaiApiKey || process.env.OPENAI_API_KEY || '',
       openaiBaseURL: config.openaiBaseURL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
       embeddingModel: config.embeddingModel || 'text-embedding-3-small',
+      useLocalEmbedding: config.useLocalEmbedding || false,
     };
 
     // 确保数据目录存在
@@ -62,11 +66,16 @@ export class OpenFluctLight {
     const vectorPath = path.join(this.config.dataPath, 'vectors');
     this.vectorIndex = new LocalIndex(vectorPath);
 
-    // 初始化 OpenAI 客户端
-    this.openai = new OpenAI({
-      apiKey: this.config.openaiApiKey,
-      baseURL: this.config.openaiBaseURL,
-    });
+    // 初始化 Embedding 服务
+    if (this.config.useLocalEmbedding) {
+      this.localEmbedding = LocalEmbedding.getInstance();
+    } else {
+      // 初始化 OpenAI 客户端
+      this.openai = new OpenAI({
+        apiKey: this.config.openaiApiKey,
+        baseURL: this.config.openaiBaseURL,
+      });
+    }
 
     // 初始化管理器
     this.souls = new SoulManager(this);
@@ -150,11 +159,15 @@ export class OpenFluctLight {
    * 生成文本嵌入向量
    */
   async embed(text: string): Promise<number[]> {
-    const response = await this.openai.embeddings.create({
-      model: this.config.embeddingModel,
-      input: text,
-    });
-    return response.data[0].embedding;
+    if (this.config.useLocalEmbedding && this.localEmbedding) {
+      return await this.localEmbedding.embed(text);
+    } else {
+      const response = await this.openai.embeddings.create({
+        model: this.config.embeddingModel,
+        input: text,
+      });
+      return response.data[0].embedding;
+    }
   }
 
   /**
