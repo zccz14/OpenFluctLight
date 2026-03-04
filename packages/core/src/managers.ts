@@ -3,6 +3,7 @@ import { souls, memories, anchors, relationships } from './schema';
 import { Soul, Memory, MemoryType } from './types';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+import { PREDEFINED_ANCHORS } from './predefined-anchors';
 
 /**
  * 灵魂管理器
@@ -27,6 +28,20 @@ export class SoulManager {
       createdAt: soul.createdAt,
       metadata: metadata ? JSON.stringify(metadata) : null,
     });
+
+    // 初始化预设锚点
+    for (const preset of PREDEFINED_ANCHORS) {
+      await this.light['orm'].insert(anchors).values({
+        id: randomUUID(),
+        soulId: soul.id,
+        question: preset.question,
+        answer: null,
+        source: 'predefined',
+        confidence: 0.3,
+        lastUpdated: new Date(),
+        relatedMemoryIds: JSON.stringify([]),
+      });
+    }
 
     return soul;
   }

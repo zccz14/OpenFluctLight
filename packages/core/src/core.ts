@@ -8,7 +8,8 @@ import path from 'path';
 import fs from 'fs';
 import { SoulManager, MemoryManager } from './managers';
 import { AnchorManager, RelationshipManager } from './operations';
-import { Seek, Recall } from './core-operations';
+import { Recall } from './core-operations';
+import { Chat } from './chat';
 
 export interface OpenFluctLightConfig {
   dataPath: string;
@@ -34,8 +35,10 @@ export class OpenFluctLight {
   public relationships: RelationshipManager;
   
   // 核心操作
-  public seek: Seek;
   public recall: Recall;
+  
+  // 高级操作
+  public chat: Chat;
 
   constructor(config: OpenFluctLightConfig) {
     this.config = {
@@ -72,8 +75,10 @@ export class OpenFluctLight {
     this.relationships = new RelationshipManager(this);
     
     // 初始化核心操作
-    this.seek = new Seek(this, this.memories, this.anchors, this.relationships);
     this.recall = new Recall(this, this.memories, this.anchors, this.relationships);
+    
+    // 初始化高级操作
+    this.chat = new Chat(this);
   }
 
   /**

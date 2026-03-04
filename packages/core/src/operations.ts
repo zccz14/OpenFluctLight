@@ -114,6 +114,43 @@ export class AnchorManager {
   }
 
   /**
+   * 更新锚点（支持 Create/Update/Delete）
+   */
+  async updateAnchor(
+    soulId: string,
+    params: 
+      | { action: 'create'; question: string; answer: string | null; source?: AnchorSource; confidence?: number; relatedMemoryIds?: string[] }
+      | { action: 'update'; anchorId: string; answer: string; confidence?: number; relatedMemoryIds?: string[] }
+      | { action: 'delete'; anchorId: string }
+  ): Promise<Anchor | void> {
+    if (params.action === 'create') {
+      return await this.ask(soulId, params.question, params.answer || '', {
+        source: params.source || 'auto_discovered',
+        confidence: params.confidence || 0.5,
+        relatedMemoryIds: params.relatedMemoryIds || [],
+      });
+    } else if (params.action === 'update') {
+      await this.light['orm']
+        .update(anchors)
+        .set({
+          answer: params.answer,
+          confidence: params.confidence ?? 1.0,
+          lastUpdated: new Date(),
+          relatedMemoryIds: params.relatedMemoryIds ? JSON.stringify(params.relatedMemoryIds) : undefined,
+        })
+        .where(eq(anchors.id, params.anchorId));
+      
+      const updated = await this.get(params.anchorId);
+      if (!updated) throw new Error('Anchor not found after update');
+      return updated;
+    } else if (params.action === 'delete') {
+      await this.light['orm']
+        .delete(anchors)
+        .where(eq(anchors.id, params.anchorId));
+    }
+  }
+
+  /**
    * 检测记忆中的矛盾
    */
   async detectContradictions(soulId: string): Promise<Contradiction[]> {
