@@ -2,6 +2,7 @@
   "name": "@openfluctlight/cli",
   "version": "0.1.0",
   "description": "OpenFluctLight CLI tool",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "ofl": "./dist/index.js"

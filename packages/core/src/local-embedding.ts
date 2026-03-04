@@ -1,13 +1,13 @@
-import { pipeline } from '@xenova/transformers';
-
 /**
  * 本地 Embedding 服务
- * 使用 Transformers.js 和 all-MiniLM-L6-v2 模型
+ * 使用 node-llama-cpp 和 embeddinggemma-300m-qat-Q8_0 模型
  */
 export class LocalEmbedding {
   private static instance: LocalEmbedding;
-  private embedder: any = null;
+  private model: any = null;
+  private context: any = null;
   private initPromise: Promise<void> | null = null;
+  private initError: Error | null = null;
 
   private constructor() {}
 
@@ -19,10 +19,11 @@ export class LocalEmbedding {
   }
 
   /**
-   * 初始化模型（首次使用时会下载，约 23MB）
+   * 初始化模型（首次使用时会下载，约 300MB）
    */
   async initialize(): Promise<void> {
-    if (this.embedder) return;
+    if (this.model && this.context) return;
+    if (this.initError) throw this.initError;
     
     if (this.initPromise) {
       await this.initPromise;
@@ -30,12 +31,33 @@ export class LocalEmbedding {
     }
 
     this.initPromise = (async () => {
-      console.log('正在加载本地 Embedding 模型（首次使用需要下载约 23MB）...');
-      this.embedder = await pipeline(
-        'feature-extraction',
-        'Xenova/all-MiniLM-L6-v2'
-      );
-      console.log('本地 Embedding 模型加载完成');
+      try {
+        console.log('正在加载本地 Embedding 模型（首次使用需要下载约 300MB）...');
+        
+        // 动态导入 node-llama-cpp
+        const { getLlama, createModelDownloader } = await import('node-llama-cpp');
+        
+        // 下载模型
+        const downloader = await createModelDownloader({
+          modelUri: 'hf:ggml-org/embeddinggemma-300m-qat-q8_0-GGUF/embeddinggemma-300m-qat-Q8_0.gguf',
+          showCliProgress: true
+        });
+        
+        const modelPath = await downloader.download();
+        
+        // 加载模型
+        const llama = await getLlama();
+        this.model = await llama.loadModel({ modelPath });
+        
+        this.context = await this.model.createEmbeddingContext();
+        console.log('本地 Embedding 模型加载完成');
+      } catch (error: any) {
+        this.initError = new Error(
+          `本地 Embedding 模型加载失败: ${error.message}\n` +
+          '请使用 OpenAI Embedding 服务，或检查 node-llama-cpp 依赖是否正确安装。'
+        );
+        throw this.initError;
+      }
     })();
 
     await this.initPromise;
@@ -47,17 +69,12 @@ export class LocalEmbedding {
   async embed(text: string): Promise<number[]> {
     await this.initialize();
     
-    if (!this.embedder) {
-      throw new Error('Embedder not initialized');
+    if (!this.context) {
+      throw new Error('Embedding context not initialized');
     }
 
-    const output = await this.embedder(text, {
-      pooling: 'mean',
-      normalize: true,
-    });
-
-    // 转换为普通数组
-    return Array.from(output.data);
+    const embedding = await this.context.getEmbeddingFor(text);
+    return Array.from(embedding.vector);
   }
 
   /**

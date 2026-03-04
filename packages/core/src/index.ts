@@ -1,7 +1,7 @@
-export { OpenFluctLight, OpenFluctLightConfig } from './core';
-export { SoulManager, MemoryManager } from './managers';
-export { AnchorManager, RelationshipManager } from './operations';
-export { Recall } from './core-operations';
-export { Chat, ChatOptions, ChatResult } from './chat';
-export * from './types';
-export { PREDEFINED_ANCHORS } from './predefined-anchors';
+export { OpenFluctLight, OpenFluctLightConfig } from './core.js';
+export { SoulManager, MemoryManager } from './managers.js';
+export { AnchorManager, RelationshipManager } from './operations.js';
+export { Recall } from './core-operations.js';
+export { Chat, ChatOptions, ChatResult } from './chat.js';
+export * from './types.js';
+export { PREDEFINED_ANCHORS } from './predefined-anchors.js';

@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { displayWelcome, displayRecalled, displayAnchorUpdates, displaySeparator } from '../utils/display';
+import { displayWelcome, displayRecalled, displayAnchorUpdates, displaySeparator } from '../utils/display.js';
 
 export class ChatCommand extends Command {
   static paths = [['chat']];
@@ -43,10 +43,13 @@ export class ChatCommand extends Command {
     // 初始化 OpenFluctLight
     const light = new OpenFluctLight({
       dataPath,
-      openaiApiKey: config.openaiApiKey,
-      openaiBaseURL: config.openaiBaseURL,
-      embeddingModel: config.embeddingModel,
+      llmApiKey: config.llmApiKey,
+      llmBaseURL: config.llmBaseURL,
+      llmModel: config.llmModel,
       useLocalEmbedding: config.useLocalEmbedding || false,
+      embeddingApiKey: config.embeddingApiKey,
+      embeddingBaseURL: config.embeddingBaseURL,
+      embeddingModel: config.embeddingModel,
     });
 
     await light.initialize();

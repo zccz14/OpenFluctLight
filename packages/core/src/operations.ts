@@ -1,9 +1,9 @@
-import { OpenFluctLight } from './core';
-import { anchors, relationships, memories } from './schema';
-import { Anchor, AnchorSource, Relationship, RelationshipTargetType, Memory, Contradiction, SeekResult, RecallResult } from './types';
+import { OpenFluctLight } from './core.js';
+import { anchors, relationships, memories } from './schema.js';
+import { Anchor, AnchorSource, Relationship, RelationshipTargetType, Memory, Contradiction, SeekResult, RecallResult } from './types.js';
 import { eq, and } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
-import { MemoryManager } from './managers';
+import { MemoryManager } from './managers.js';
 
 /**
  * 灵魂锚点管理器
@@ -130,6 +130,13 @@ export class AnchorManager {
         relatedMemoryIds: params.relatedMemoryIds || [],
       });
     } else if (params.action === 'update') {
+      // 先检查锚点是否存在
+      const existing = await this.get(params.anchorId);
+      if (!existing) {
+        console.warn(`Anchor ${params.anchorId} not found, skipping update`);
+        return undefined;
+      }
+      
       await this.light['orm']
         .update(anchors)
         .set({

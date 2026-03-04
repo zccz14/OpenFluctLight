@@ -1,5 +1,5 @@
-import { OpenFluctLight } from './core';
-import { Anchor, Memory } from './types';
+import { OpenFluctLight } from './core.js';
+import { Anchor, Memory } from './types.js';
 
 export interface ChatOptions {
   contextId?: string;  // 对话对象的身份

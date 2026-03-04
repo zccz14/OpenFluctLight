@@ -1,9 +1,9 @@
-import { OpenFluctLight } from './core';
-import { souls, memories, anchors, relationships } from './schema';
-import { Soul, Memory, MemoryType } from './types';
+import { OpenFluctLight } from './core.js';
+import { souls, memories, anchors, relationships } from './schema.js';
+import { Soul, Memory, MemoryType } from './types.js';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
-import { PREDEFINED_ANCHORS } from './predefined-anchors';
+import { PREDEFINED_ANCHORS } from './predefined-anchors.js';
 
 /**
  * 灵魂管理器

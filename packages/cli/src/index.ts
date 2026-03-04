@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { Cli } from 'clipanion';
-import { ChatCommand } from './commands/ChatCommand';
-import { InitCommand } from './commands/InitCommand';
+import { ChatCommand } from './commands/ChatCommand.js';
+import { InitCommand } from './commands/InitCommand.js';
 
 const cli = new Cli({
   binaryLabel: 'OpenFluctLight CLI',

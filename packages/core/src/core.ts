@@ -1,23 +1,34 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import * as schema from './schema';
+import * as schema from './schema.js';
 import { LocalIndex } from 'vectra';
 import OpenAI from 'openai';
 import path from 'path';
 import fs from 'fs';
-import { SoulManager, MemoryManager } from './managers';
-import { AnchorManager, RelationshipManager } from './operations';
-import { Recall } from './core-operations';
-import { Chat } from './chat';
-import { LocalEmbedding } from './local-embedding';
+import { SoulManager, MemoryManager } from './managers.js';
+import { AnchorManager, RelationshipManager } from './operations.js';
+import { Recall } from './core-operations.js';
+import { Chat } from './chat.js';
+import { LocalEmbedding } from './local-embedding.js';
 
 export interface OpenFluctLightConfig {
   dataPath: string;
+  
+  // LLM 配置（用于对话生成）
+  llmApiKey?: string;
+  llmBaseURL?: string;
+  llmModel?: string;
+  
+  // Embedding 配置
+  useLocalEmbedding?: boolean;  // 是否使用本地 Embedding
+  embeddingApiKey?: string;     // Embedding API Key（当不使用本地模型时）
+  embeddingBaseURL?: string;    // Embedding Base URL
+  embeddingModel?: string;      // Embedding 模型名称
+  
+  // 兼容旧配置
   openaiApiKey?: string;
   openaiBaseURL?: string;
-  embeddingModel?: string;
-  useLocalEmbedding?: boolean;  // 是否使用本地 Embedding
 }
 
 /**
@@ -28,6 +39,7 @@ export class OpenFluctLight {
   private orm: ReturnType<typeof drizzle>;
   private vectorIndex: LocalIndex;
   private openai!: OpenAI;
+  private embeddingClient!: OpenAI;
   private localEmbedding: LocalEmbedding | null = null;
   private config: Required<OpenFluctLightConfig>;
 
@@ -46,10 +58,21 @@ export class OpenFluctLight {
   constructor(config: OpenFluctLightConfig) {
     this.config = {
       dataPath: config.dataPath,
-      openaiApiKey: config.openaiApiKey || process.env.OPENAI_API_KEY || '',
-      openaiBaseURL: config.openaiBaseURL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
-      embeddingModel: config.embeddingModel || 'text-embedding-3-small',
+      
+      // LLM 配置（优先使用新配置，兼容旧配置）
+      llmApiKey: config.llmApiKey || config.openaiApiKey || process.env.OPENAI_API_KEY || '',
+      llmBaseURL: config.llmBaseURL || config.openaiBaseURL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+      llmModel: config.llmModel || 'gpt-4o-mini',
+      
+      // Embedding 配置
       useLocalEmbedding: config.useLocalEmbedding || false,
+      embeddingApiKey: config.embeddingApiKey || config.openaiApiKey || process.env.OPENAI_API_KEY || '',
+      embeddingBaseURL: config.embeddingBaseURL || config.openaiBaseURL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+      embeddingModel: config.embeddingModel || 'text-embedding-3-small',
+      
+      // 兼容旧配置
+      openaiApiKey: config.openaiApiKey || config.llmApiKey || process.env.OPENAI_API_KEY || '',
+      openaiBaseURL: config.openaiBaseURL || config.llmBaseURL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
     };
 
     // 确保数据目录存在
@@ -69,11 +92,19 @@ export class OpenFluctLight {
     // 初始化 Embedding 服务
     if (this.config.useLocalEmbedding) {
       this.localEmbedding = LocalEmbedding.getInstance();
-    } else {
-      // 初始化 OpenAI 客户端
+    } else if (this.config.embeddingApiKey) {
+      // 初始化独立的 Embedding 客户端
+      this.embeddingClient = new OpenAI({
+        apiKey: this.config.embeddingApiKey,
+        baseURL: this.config.embeddingBaseURL,
+      });
+    }
+    
+    // 初始化 OpenAI 客户端（用于 LLM 对话）
+    if (this.config.llmApiKey) {
       this.openai = new OpenAI({
-        apiKey: this.config.openaiApiKey,
-        baseURL: this.config.openaiBaseURL,
+        apiKey: this.config.llmApiKey,
+        baseURL: this.config.llmBaseURL,
       });
     }
 
@@ -162,7 +193,10 @@ export class OpenFluctLight {
     if (this.config.useLocalEmbedding && this.localEmbedding) {
       return await this.localEmbedding.embed(text);
     } else {
-      const response = await this.openai.embeddings.create({
+      if (!this.embeddingClient) {
+        throw new Error('Embedding API key is required. Please provide embeddingApiKey in the config.');
+      }
+      const response = await this.embeddingClient.embeddings.create({
         model: this.config.embeddingModel,
         input: text,
       });
@@ -177,8 +211,12 @@ export class OpenFluctLight {
     model?: string;
     temperature?: number;
   }): Promise<string> {
+    if (!this.openai) {
+      throw new Error('LLM API key is required for chat completions. Please provide llmApiKey in the config.');
+    }
+    
     const response = await this.openai.chat.completions.create({
-      model: options?.model || 'gpt-4o-mini',
+      model: options?.model || this.config.llmModel,
       messages: messages as any,
       temperature: options?.temperature ?? 0.7,
     });

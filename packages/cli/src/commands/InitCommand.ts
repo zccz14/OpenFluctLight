@@ -27,22 +27,22 @@ export class InitCommand extends Command {
         name: 'embeddingType',
         message: 'Embedding 服务类型:',
         choices: [
-          { name: '本地模型（无需 API，首次下载约 23MB）', value: 'local' },
+          { name: '本地模型（无需 API，首次下载约 300MB）', value: 'local' },
           { name: 'OpenAI API（需要 API Key）', value: 'openai' },
         ],
         default: 'local',
       },
       {
         type: 'input',
-        name: 'openaiApiKey',
-        message: 'OpenAI API Key:',
+        name: 'embeddingApiKey',
+        message: 'Embedding API Key:',
         default: process.env.OPENAI_API_KEY || '',
         when: (answers: any) => answers.embeddingType === 'openai',
       },
       {
         type: 'input',
-        name: 'openaiBaseURL',
-        message: 'OpenAI Base URL:',
+        name: 'embeddingBaseURL',
+        message: 'Embedding Base URL:',
         default: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
         when: (answers: any) => answers.embeddingType === 'openai',
       },
@@ -52,6 +52,18 @@ export class InitCommand extends Command {
         message: 'Embedding 模型:',
         default: 'text-embedding-3-small',
         when: (answers: any) => answers.embeddingType === 'openai',
+      },
+      {
+        type: 'input',
+        name: 'llmApiKey',
+        message: 'LLM API Key:',
+        default: process.env.OPENAI_API_KEY || '',
+      },
+      {
+        type: 'input',
+        name: 'llmBaseURL',
+        message: 'LLM Base URL:',
+        default: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
       },
       {
         type: 'input',
@@ -77,13 +89,15 @@ export class InitCommand extends Command {
     // 构建配置对象
     const config: any = {
       dataPath: answers.dataPath,
-      llmModel: answers.llmModel,
       useLocalEmbedding: answers.embeddingType === 'local',
+      llmApiKey: answers.llmApiKey,
+      llmBaseURL: answers.llmBaseURL,
+      llmModel: answers.llmModel,
     };
 
     if (answers.embeddingType === 'openai') {
-      config.openaiApiKey = answers.openaiApiKey;
-      config.openaiBaseURL = answers.openaiBaseURL;
+      config.embeddingApiKey = answers.embeddingApiKey;
+      config.embeddingBaseURL = answers.embeddingBaseURL;
       config.embeddingModel = answers.embeddingModel;
     }
 
@@ -92,8 +106,11 @@ export class InitCommand extends Command {
 
     console.log(chalk.green(`\n✓ 配置已保存到: ${configPath}`));
     console.log(chalk.green(`✓ 数据目录: ${answers.dataPath}`));
+    console.log(chalk.green(`✓ LLM: ${answers.llmModel} (${answers.llmBaseURL})`));
     if (answers.embeddingType === 'local') {
-      console.log(chalk.yellow('✓ 使用本地 Embedding 模型（首次使用时会自动下载）'));
+      console.log(chalk.yellow('✓ Embedding: 本地模型（首次使用时会自动下载约 300MB）'));
+    } else {
+      console.log(chalk.green(`✓ Embedding: ${answers.embeddingModel} (${answers.embeddingBaseURL})`));
     }
     console.log(chalk.cyan('\n现在可以使用: ofl chat -s <灵魂名称>'));
 

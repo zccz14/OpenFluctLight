@@ -1,7 +1,7 @@
-import { OpenFluctLight } from './core';
-import { MemoryManager } from './managers';
-import { AnchorManager, RelationshipManager } from './operations';
-import { SeekResult, RecallResult, Memory } from './types';
+import { OpenFluctLight } from './core.js';
+import { MemoryManager } from './managers.js';
+import { AnchorManager, RelationshipManager } from './operations.js';
+import { SeekResult, RecallResult, Memory } from './types.js';
 
 /**
  * 求索操作
