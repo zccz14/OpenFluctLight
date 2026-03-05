@@ -33,18 +33,18 @@ export class ChatCommand extends Command {
   static usage = Command.Usage({
     description: '与灵魂对话',
     examples: [
-      ['与名为 Alice 的灵魂对话（交互模式）', 'ofl chat -s Alice'],
-      ['直接发送消息', 'ofl chat -s Alice -u Alice 你好！'],
+      ['与名为 Alice 的灵魂对话（交互模式）', 'ofl chat --to Alice'],
+      ['直接发送消息', 'ofl chat --to Alice --from Bob 你好！'],
     ],
   });
 
-  soul = Option.String('-s,--soul', {
-    description: '灵魂名称',
+  to = Option.String('--to', {
+    description: '对话的目标灵魂',
     required: true,
   });
 
-  user = Option.String('-u,--user', {
-    description: '用户名称',
+  from = Option.String('--from', {
+    description: '发送消息的用户（默认使用 --to 的值）',
     required: false,
   });
 
@@ -70,7 +70,7 @@ export class ChatCommand extends Command {
     }
 
     const config = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as Config;
-    const dataPath = path.join(config.dataPath, this.soul!);
+    const dataPath = path.join(config.dataPath, this.to!);
 
     // 初始化 OpenFluctLight
     const light = new OpenFluctLight({
@@ -88,18 +88,18 @@ export class ChatCommand extends Command {
 
     // 检查或创建灵魂
     let souls = await light.souls.list();
-    let soul = souls.find((s) => s.name === this.soul);
+    let soul = souls.find((s) => s.name === this.to);
 
     if (!soul) {
-      console.log(chalk.yellow(`灵魂 "${this.soul}" 不存在，正在创建...`));
-      soul = await light.souls.create(this.soul!);
+      console.log(chalk.yellow(`灵魂 "${this.to}" 不存在，正在创建...`));
+      soul = await light.souls.create(this.to!);
       console.log(
-        chalk.green(`✓ 灵魂 "${this.soul}" 已创建，包含 28 个预设锚点`)
+        chalk.green(`✓ 灵魂 "${this.to}" 已创建，包含 28 个预设锚点`)
       );
       console.log();
     }
 
-    const userName = this.user || '你';
+    const userName = this.from || this.to!;
     displayWelcome(soul.name, dataPath);
 
     // 如果提供了 prompt 参数，执行单次对话后退出
