@@ -32,7 +32,10 @@ export class ChatCommand extends Command {
 
   static usage = Command.Usage({
     description: '与灵魂对话',
-    examples: [['与名为 Alice 的灵魂对话', 'ofl chat -s Alice']],
+    examples: [
+      ['与名为 Alice 的灵魂对话（交互模式）', 'ofl chat -s Alice'],
+      ['直接发送消息', 'ofl chat -s Alice -u Alice 你好！'],
+    ],
   });
 
   soul = Option.String('-s,--soul', {
@@ -49,6 +52,8 @@ export class ChatCommand extends Command {
     description: '显示详细日志（包括召回记忆、Prompt、LLM 响应等）',
     required: false,
   });
+
+  prompt = Option.Rest({ required: 0 });
 
   async execute() {
     const configPath = path.join(
@@ -96,6 +101,44 @@ export class ChatCommand extends Command {
 
     const userName = this.user || '你';
     displayWelcome(soul.name, dataPath);
+
+    // 如果提供了 prompt 参数，执行单次对话后退出
+    if (this.prompt && this.prompt.length > 0) {
+      const userInput = this.prompt.join(' ');
+
+      try {
+        // 调用 Chat
+        const result = await light.chat.chat(soul.id, userInput, {
+          userName,
+          verbose: this.verbose,
+        });
+
+        // 显示召回的记忆和锚点
+        displayRecalled(result.recalled.memories, result.recalled.anchors);
+
+        // 显示 AI 回复
+        console.log(chalk.green(`\n${soul.name}: ${result.response}`));
+
+        // 显示锚点更新
+        if (result.updatedAnchors) {
+          displayAnchorUpdates(result.updatedAnchors);
+        }
+
+        displaySeparator();
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : '';
+        console.error(chalk.red(`\n错误: ${errorMessage}`));
+        console.error(chalk.gray(errorStack));
+        displaySeparator();
+        await light.close();
+        return 1;
+      }
+
+      await light.close();
+      return 0;
+    }
 
     // 交互式对话循环
     while (true) {
