@@ -70,11 +70,21 @@ export OPENAI_BASE_URL="https://api.openai.com/v1"  # 可选
 
 ### 开始对话
 
+**交互模式：**
+
 ```bash
-node dist/index.js chat -s Alice
+node dist/index.js chat --to Alice
 ```
 
 这会创建一个名为 "Alice" 的灵魂，并进入交互式对话模式。
+
+**直接发送消息：**
+
+```bash
+node dist/index.js chat --to Alice --from Bob 你好，Alice！
+```
+
+这会发送一条消息后立即退出，适合脚本化调用。如果不指定 `--from`，默认使用 `--to` 的值作为发送者。
 
 ### 对话示例
 
