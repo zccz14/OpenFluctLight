@@ -1,0 +1,23 @@
+# Development files
+node_modules/
+packages/
+.husky/
+*.log
+
+# Git files
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+
+# Config files
+eslint.config.js
+.prettierrc
+.prettierignore
+pnpm-workspace.yaml
+pnpm-lock.yaml
+
+# Documentation (keep README.md)
+DESIGN.md

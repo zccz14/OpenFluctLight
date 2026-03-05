@@ -1,8 +1,8 @@
 {
-  "name": "OpenFluctLight",
-  "version": "1.0.0",
+  "name": "openfluctlight",
+  "version": "0.0.1",
   "type": "module",
-  "description": "",
+  "description": "OpenFluctLight - A lightweight fluctuation analysis library",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,9 +14,17 @@
   "lint-staged": {
     "*.{js,ts,json,md}": "prettier --write"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "fluctlight",
+    "fluctuation",
+    "analysis"
+  ],
+  "author": "zccz14",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zccz14/OpenFluctLight.git"
+  },
   "packageManager": "pnpm@10.15.0",
   "devDependencies": {
     "@types/node": "^25.3.3",
